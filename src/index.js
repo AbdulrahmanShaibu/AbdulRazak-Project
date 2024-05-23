@@ -1,0 +1,79 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import 'bootstrap/dist/css/bootstrap.min.css'
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import HowToWrite from './components/HowToWrite';
+import ContactUs from './components/category';
+import Student from './components/student';
+import Teacher from './components/teacher';
+import Payment from './components/payment';
+import User from './components/user';
+import Syllabus from './components/syllabus';
+import Category from './components/category';
+import Website from './components/website';
+// import SignIn from './forms/signin';
+
+// Website imports
+import NewHome from './website/pages/Home';
+import About from './website/pages/About';
+import BlogDetails from './website/pages/BlogDetails';
+import Blogs from './website/pages/Blogs';
+import Contact from './website/pages/Contact';
+import Faq from './website/pages/Faq';
+import Project from './website/pages/Project';
+import ProjectDetails from './website/pages/ProjectDetails';
+import ServiceDetails from './website/pages/ServiceDetails';
+import Services from './website/pages/Services';
+
+//CSS
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './website/assets/css/default.css';
+import './website/assets/css/main.css';
+import './website/assets/css/responsive.css';
+import './website/assets/vendor/modal-video/modal-video.min.css';
+import './website/assets/vendor/slick/slick.css';
+
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<App />}>
+          <Route path="how-to-write" element={<HowToWrite />} />
+          <Route path="teacher" element={<Teacher />} />
+          {/* <Route path="syllabus" element={<Syllabus/>} /> */}
+          <Route path="syllabus" element={<Syllabus />} />
+          <Route path="category" element={<Category />} />
+          <Route path="student" element={<Student />} />
+          <Route path="user" element={<User />} />
+          <Route path="payment" element={<Payment />} />
+          <Route path="website" element={<Website />} />
+          <Route path="contact-us" element={<ContactUs />} />
+          {/* <Route path="sign-in" element={<SignIn />} /> */}
+
+          {/* Website Routing components */}
+          <Route path="/website/view" exact element={<NewHome />} />
+          <Route path="/about" exact element={<About />} />
+          <Route path="/services" exact element={<Services />} />
+          <Route path="/service-details" exact element={<ServiceDetails />} />
+          <Route path="/projects" exact element={<Project />} />
+          <Route path="/project-details" exact element={<ProjectDetails />} />
+          <Route path="/blogs" exact element={<Blogs />} />
+          <Route path="/blog-details" exact element={<BlogDetails />} />
+          <Route path="/faq" exact element={<Faq />} />
+          <Route path="/contact" exact element={<Contact />} />
+          <Route path="*" element={<p>Path not found</p>} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  </React.StrictMode>
+);
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
