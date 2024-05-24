@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
     Toolbar, Divider, List, ListItemButton,
     ListItemIcon, ListItemText, Typography,
-    Tooltip, Collapse, IconButton
+    Tooltip, Collapse
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import {
@@ -14,7 +14,7 @@ import {
     Payment as PaymentIcon, Language as LanguageIcon,
     AccountCircle as AccountCircleIcon, ShoppingCart as ShoppingCartIcon
 } from '@mui/icons-material';
-import { Dropdown, DropdownButton } from 'react-bootstrap';
+
 
 const ResponsiveDrawer = () => {
     const [openManagement, setOpenManagement] = useState({
@@ -81,6 +81,12 @@ const ResponsiveDrawer = () => {
                                 <MenuBookIcon />
                             </ListItemIcon>
                             <ListItemText primary="Syllabus" />
+                        </ListItemButton>
+                        <ListItemButton component={Link} to="/level" sx={{ pl: 4, color: "white" }}>
+                            <ListItemIcon sx={{ color: "white" }}>
+                                <MenuBookIcon />
+                            </ListItemIcon>
+                            <ListItemText primary="Level" />
                         </ListItemButton>
                     </List>
                 </Collapse>

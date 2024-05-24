@@ -35,6 +35,7 @@ import './website/assets/css/main.css';
 import './website/assets/css/responsive.css';
 import './website/assets/vendor/modal-video/modal-video.min.css';
 import './website/assets/vendor/slick/slick.css';
+import Level from './components/level';
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -53,6 +54,7 @@ root.render(
           <Route path="payment" element={<Payment />} />
           <Route path="website" element={<Website />} />
           <Route path="contact-us" element={<ContactUs />} />
+          <Route path='level' element={<Level />} />
           {/* <Route path="sign-in" element={<SignIn />} /> */}
 
           {/* Website Routing components */}
