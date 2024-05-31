@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
+import '@fontsource/roboto';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
@@ -36,6 +37,24 @@ import './website/assets/css/responsive.css';
 import './website/assets/vendor/modal-video/modal-video.min.css';
 import './website/assets/vendor/slick/slick.css';
 import Level from './components/level';
+import Class from './components/class';
+import StudentSelectedSubject from './components/StudentSelectedSubject';
+import StudentNotes from './components/StudentNotes';
+import StudentPaymentStatus from './components/StudentPaymentStatus';
+import StudentSelectedTeacher from './components/StudentSelectedTeacher';
+import Profile from './Teacher/Profile';
+import ClassRegistration from './Teacher/ClassRegistration';
+import Classes from './Teacher/Classes';
+import ClassStatus from './Teacher/ClassStatus';
+import CourseOutline from './Teacher/CourseOutline';
+import Notes from './Teacher/Notes';
+import Topics from './Teacher/Topics';
+import Videos from './Teacher/Videos';
+import Rate from './Payments/Rate';
+import Reviews from './Payments/Reviews';
+import Payments from './Payments/Payments';
+import PaymentsRecord from './Payments/PaymentsRecord';
+
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -55,7 +74,29 @@ root.render(
           <Route path="website" element={<Website />} />
           <Route path="contact-us" element={<ContactUs />} />
           <Route path='level' element={<Level />} />
+          <Route path='class' element={<Class />} />
+          <Route path='view_subjects' element={<StudentSelectedSubject />} />
+          <Route path='view_notes' element={<StudentNotes />} />
+          <Route path='view_payment' element={<StudentPaymentStatus />} />
+          <Route path='view_teachers' element={<StudentSelectedTeacher />} />
           {/* <Route path="sign-in" element={<SignIn />} /> */}
+
+
+          {/* Teacher Routing Components */}
+          <Route path="/teacher/profile" element={<Profile />} />
+          <Route path="/teacher/class-registration" element={<ClassRegistration />} />
+          <Route path="/teacher/classes" element={<Classes />} />
+          <Route path="/teacher/class-status" element={<ClassStatus />} />
+          <Route path="/teacher/course-outline" element={<CourseOutline />} />
+          <Route path="/teacher/notes" element={<Notes />} />
+          <Route path="/teacher/topics" element={<Topics />} /> {/* Add route for Topics component */}
+          <Route path="/teacher/videos" element={<Videos />} />
+
+          {/* Payment Components */}
+          <Route path="/rate" element={<Rate />} />
+          <Route path="/reviews" element={<Reviews />} />
+          <Route path="/payments" element={<Payments />} />
+          <Route path="/payments-record" element={<PaymentsRecord />} />
 
           {/* Website Routing components */}
           <Route path="/website/view" exact element={<NewHome />} />

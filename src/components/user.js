@@ -16,22 +16,31 @@ const User = () => {
         }
       />
       <CardContent>
-        <Typography variant="body2" color="textSecondary">
+        {/* <Typography variant="body2" color="textSecondary">
           Hi, I’m Alec Thompson, Decisions: If you can’t decide, the answer is no. If two equally difficult paths, choose the one more painful in the short term (pain avoidance is creating an illusion of equality).
-        </Typography>
+        </Typography> */}
         <Divider sx={{ my: 2 }} />
         <List>
           <ListItem>
             <ListItemText primary="Full Name" secondary="Alec M. Thompson" />
           </ListItem>
           <ListItem>
-            <ListItemText primary="Mobile" secondary="(44) 123 1234 123" />
+            <ListItemText primary="Date of birth" secondary="23/04/2023" />
           </ListItem>
           <ListItem>
-            <ListItemText primary="Email" secondary="alecthompson@mail.com" />
+            <ListItemText primary="Gender" secondary="Male" />
           </ListItem>
           <ListItem>
-            <ListItemText primary="Location" secondary="USA" />
+            <ListItemText primary="Email" secondary="user@gmail.com" />
+          </ListItem>
+          <ListItem>
+            <ListItemText primary="Address" secondary="Tanzania" />
+          </ListItem>
+          <ListItem>
+            <ListItemText primary="Phone" secondary="0778340957" />
+          </ListItem>
+          <ListItem>
+            <ListItemText primary="Status" secondary="Student" />
           </ListItem>
           <ListItem>
             <ListItemIcon>

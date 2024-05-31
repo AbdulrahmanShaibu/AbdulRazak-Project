@@ -10,7 +10,7 @@ import Typography from "@mui/material/Typography";
 import ResponsiveDrawer from "./components/responsiveDrawer";
 import { Outlet } from "react-router-dom";
 
-const drawerWidth = 240;
+const drawerWidth = 280;
 
 function App() {
   const [mobileViewOpen, setMobileViewOpen] = React.useState(false);
@@ -20,14 +20,14 @@ function App() {
   };
 
   return (
-    <Box sx={{ display: "flex" }}>
-      {/* <CssBaseline /> */}
+    <Box sx={{ display: "flex", backgroundColor: 'whitesmoke', }}>
+      <CssBaseline />
       <AppBar
         position="fixed"
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
-          backgroundColor: "#444444",
+          backgroundColor: "#20232a",
         }}
       >
         <Toolbar>
@@ -39,8 +39,8 @@ function App() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6">
-            System Management
+          <Typography variant="h6" noWrap>
+            Management Dashboard
           </Typography>
         </Toolbar>
       </AppBar>
