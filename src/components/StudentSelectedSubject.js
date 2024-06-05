@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     TextField, Button, Select, MenuItem, FormControl,
-    InputLabel, List, ListItem, ListItemText, Paper, Typography, Grid
+    InputLabel, List, ListItem, ListItemText, Paper, Typography, Grid, Snackbar
 } from '@mui/material';
 
 const StudentSelectedSubject = () => {
@@ -10,6 +10,8 @@ const StudentSelectedSubject = () => {
     const [subjects, setSubjects] = useState([]);
     const [teachers, setTeachers] = useState([]);
     const [selectedSubjects, setSelectedSubjects] = useState([]);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
 
     useEffect(() => {
         // Fetch subjects and teachers data from API
@@ -24,7 +26,7 @@ const StudentSelectedSubject = () => {
             const data = await response.json();
             setSubjects(data);
         } catch (error) {
-            console.error('Error fetching subjects:', error);
+            handleFetchError('subjects');
         }
     };
 
@@ -35,23 +37,37 @@ const StudentSelectedSubject = () => {
             const data = await response.json();
             setTeachers(data);
         } catch (error) {
-            console.error('Error fetching teachers:', error);
+            handleFetchError('teachers');
         }
+    };
+
+    const handleFetchError = (type) => {
+        setSnackbarMessage(`Error fetching ${type}. Please try again later.`);
+        setSnackbarOpen(true);
     };
 
     const handleAddSubject = () => {
         // Add selected subject to the list of selected subjects
-        const selectedSubject = subjects.find(subject => subject.uid === subjectUid);
-        setSelectedSubjects([...selectedSubjects, selectedSubject]);
+        if (teacherUid && subjectUid) {
+            const selectedSubject = subjects.find(subject => subject.uid === subjectUid);
+            setSelectedSubjects([...selectedSubjects, selectedSubject]);
+        } else {
+            setSnackbarMessage('Please select both teacher and subject.');
+            setSnackbarOpen(true);
+        }
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbarOpen(false);
     };
 
     return (
         <Grid container spacing={3} justifyContent="center">
             <Grid item xs={10} md={8} lg={6}>
-                <Paper elevation={3} sx={{ padding: 2 }}>
-                    <Typography variant="h5" gutterBottom>
+            <Typography variant="h6" gutterBottom style={{textAlign:'center'}}>
                         Select Subject and Teacher
                     </Typography>
+                <Paper elevation={3} sx={{ padding: 2 }}>
                     <FormControl fullWidth sx={{ marginBottom: 2 }}>
                         <InputLabel>Teacher</InputLabel>
                         <Select
@@ -79,7 +95,7 @@ const StudentSelectedSubject = () => {
                         </Select>
                     </FormControl>
                     <Button variant="contained" onClick={handleAddSubject} fullWidth>
-                        Get Assigned
+                        Send Request
                     </Button>
                     {/* Display list of selected subjects */}
                     <List sx={{ marginTop: 2 }}>
@@ -91,6 +107,13 @@ const StudentSelectedSubject = () => {
                     </List>
                 </Paper>
             </Grid>
+            <Snackbar
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={handleCloseSnackbar}
+                message={snackbarMessage}
+            />
         </Grid>
     );
 };

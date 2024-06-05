@@ -1,0 +1,100 @@
+/* styles.css */
+.form-control {
+    width: 500px;
+    max-width: 500px;
+    margin: 20px auto;
+    box-sizing: border-box;
+    padding: 0 10px;
+}
+
+.form-control label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+}
+
+.form-control select {
+    width: 100%;
+    background-color: whitesmoke;
+    height: 55px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-sizing: border-box;
+}
+
+.form-control select:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
+}
+
+.form-control option {
+    padding: 10px;
+    font-size: 16px;
+}
+
+/* Additional styles for a polished look */
+.form-control {
+    position: relative;
+}
+
+.form-control::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 18px;
+    width: 8px;
+    height: 8px;
+    background-color: #007bff;
+    border-radius: 50%;
+    transition: opacity 0.3s;
+    opacity: 0;
+}
+
+.form-control select:focus::before {
+    opacity: 1;
+}
+
+/* Media queries for better responsiveness */
+@media (max-width: 768px) {
+    .form-control {
+        max-width: 90%;
+    }
+
+    .form-control label {
+        font-size: 12px;
+    }
+
+    .form-control select {
+        height: 50px;
+        font-size: 14px;
+    }
+
+    .form-control option {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-control {
+        max-width: 100%;
+    }
+
+    .form-control label {
+        font-size: 12px;
+    }
+
+    .form-control select {
+        height: 45px;
+        font-size: 12px;
+    }
+
+    .form-control option {
+        font-size: 12px;
+    }
+}

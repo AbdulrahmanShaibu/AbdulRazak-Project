@@ -88,7 +88,7 @@ const CourseOutline = () => {
 
   return (
     <Container>
-      <h1>Course Outline</h1>
+      <h4>Course Outline</h4>
       <Paper elevation={3} style={{ padding: '20px', marginBottom: '20px' }}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <FormControl fullWidth margin="normal">

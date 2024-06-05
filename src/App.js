@@ -39,8 +39,10 @@ function App() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap>
-            Management Dashboard
+          <Typography 
+          style={{color:'white'}}
+          variant="h6" noWrap>
+            EduLink
           </Typography>
         </Toolbar>
       </AppBar>

@@ -49,7 +49,7 @@ const ResponsiveDrawer = () => {
 
     return (
         <div className="bg-gradient-dark" style={{ backgroundColor: "#20232a", height: "100%", padding: "10px 20px" }}>
-            <Typography
+            {/* <Typography
                 variant="h6"
                 sx={{
                     textAlign: "center",
@@ -58,9 +58,11 @@ const ResponsiveDrawer = () => {
                     fontSize: 22,
                     fontWeight: 'bold',
                 }}
-            >
-                Management System
-            </Typography>
+            > */}
+            <img src='https://images.pexels.com/photos/2781814/pexels-photo-2781814.jpeg?auto=compress&cs=tinysrgb&w=600'
+                style={{ width: '100%', borderRadius: '5%' }}
+            ></img>
+            {/* </Typography> */}
             <List sx={{ backgroundColor: "#20232a", marginTop: "20px" }}>
                 <ListItemButton onClick={() => handleToggle('system')} sx={{ color: "white" }}>
                     <ListItemIcon sx={{ color: "white" }}>
@@ -105,25 +107,25 @@ const ResponsiveDrawer = () => {
                             <ListItemIcon sx={{ color: "white" }}>
                                 <SchoolIcon />
                             </ListItemIcon>
-                            <ListItemText primary="Classes" />
+                            <ListItemText primary="My Class" />
                         </ListItemButton>
                         <ListItemButton component={Link} to="/view_teachers" sx={{ pl: 4, color: "white" }}>
                             <ListItemIcon sx={{ color: "white" }}>
                                 <PersonIcon />
                             </ListItemIcon>
-                            <ListItemText primary="Selected Teachers" />
+                            <ListItemText primary="Find Teachers" />
                         </ListItemButton>
                         <ListItemButton component={Link} to="/view_subjects" sx={{ pl: 4, color: "white" }}>
                             <ListItemIcon sx={{ color: "white" }}>
                                 <MenuBookIcon />
                             </ListItemIcon>
-                            <ListItemText primary="Selected Subjects" />
+                            <ListItemText primary="My Subjects" />
                         </ListItemButton>
                         <ListItemButton component={Link} to="/view_notes" sx={{ pl: 4, color: "white" }}>
                             <ListItemIcon sx={{ color: "white" }}>
                                 <EditIcon />
                             </ListItemIcon>
-                            <ListItemText primary="Notes" />
+                            <ListItemText primary="View Notes" />
                         </ListItemButton>
                         <ListItemButton component={Link} to="/view_payment" sx={{ pl: 4, color: "white" }}>
                             <ListItemIcon sx={{ color: "white" }}>
@@ -159,7 +161,7 @@ const ResponsiveDrawer = () => {
                             <ListItemIcon sx={{ color: "white" }}>
                                 <GiClassicalKnowledge />
                             </ListItemIcon>
-                            <ListItemText primary="Classes" />
+                            <ListItemText primary="Class Invitation" />
                         </ListItemButton>
                         <ListItemButton component={Link} to="/teacher/class-status" sx={{ pl: 4, color: "white" }}>
                             <ListItemIcon sx={{ color: "white" }}>

@@ -1,4 +1,3 @@
-// src/Classes.js
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -12,7 +11,8 @@ import {
   TableRow,
   Paper,
   Typography,
-  Box
+  Box,
+  CircularProgress // Added for loading indicator
 } from '@mui/material';
 import axios from 'axios';
 
@@ -21,9 +21,9 @@ const Classes = () => {
   const [className, setClassName] = useState('');
   const [invitationLink, setInvitationLink] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false); // State for loading indicator
 
   useEffect(() => {
-    // Fetch the initial data from fake API
     fetchClasses();
   }, []);
 
@@ -42,6 +42,7 @@ const Classes = () => {
       return;
     }
 
+    setLoading(true); // Show loading indicator
     try {
       const newClass = { class_name: className, invitation_link: invitationLink };
       const response = await axios.post('/api/classes', newClass);
@@ -49,15 +50,18 @@ const Classes = () => {
       setClassName('');
       setInvitationLink('');
       setError('');
+      setLoading(false); // Hide loading indicator
     } catch (error) {
       console.error('Error adding class:', error);
+      setError('Failed to add class. Please try again.');
+      setLoading(false); // Hide loading indicator on error
     }
   };
 
   return (
     <Container>
-      <Typography variant="h3" component="h1" gutterBottom>
-        Classes
+      <Typography variant="h5" component="h1" gutterBottom>
+        Class
       </Typography>
       <Paper elevation={2} sx={{ padding: 2 }}>
         <form noValidate autoComplete="off">
@@ -83,8 +87,13 @@ const Classes = () => {
             </Typography>
           )}
           <Box textAlign="right" mt={2}>
-            <Button variant="contained" color="primary" onClick={addClass}>
-              Add Class
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={addClass}
+              disabled={loading} // Disable button when loading
+            >
+              {loading ? <CircularProgress size={24} /> : 'Add Class'} {/* Show loading indicator */}
             </Button>
           </Box>
         </form>
@@ -112,4 +121,5 @@ const Classes = () => {
     </Container>
   );
 };
+
 export default Classes;

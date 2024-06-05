@@ -27,6 +27,13 @@ const Payment = () => {
 
         const cardElement = elements.getElement(CardElement);
 
+        // Client-side validation
+        if (!cardElement || !cardElement._model.complete) {
+            setError('Please enter valid card details.');
+            setIsProcessing(false);
+            return;
+        }
+
         const { error, paymentMethod } = await stripe.createPaymentMethod({
             type: 'card',
             card: cardElement,
@@ -39,6 +46,7 @@ const Payment = () => {
             setError(null);
             console.log('PaymentMethod:', paymentMethod);
             setIsProcessing(false);
+            // Add logic here for handling successful payment
         }
     };
 

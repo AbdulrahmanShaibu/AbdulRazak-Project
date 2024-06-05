@@ -37,7 +37,7 @@ const ClassStatus = () => {
 
   return (
     <Container>
-      <h1>Class Status</h1>
+      <h4>Class Status</h4>
       <Paper style={{padding:'15px'}}>
         {error && <Alert severity="error">{error}</Alert>}
         <form onSubmit={handleSubmit(onSubmit)}>

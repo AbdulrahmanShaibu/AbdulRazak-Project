@@ -16,16 +16,24 @@ import {
   DialogContentText,
   DialogTitle,
   TextField,
+  InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  CircularProgress,
+  Snackbar,
+  Alert,
+  FormControl,
 } from '@mui/material';
-
+import '../css/forms.css';
 const Syllabus = () => {
   const [syllabusItems, setSyllabusItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [levels, setLevels] = useState([]);
   const [open, setOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState({ id: null, syllabus_name: '', category_id: '', level_id: '', amount: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   useEffect(() => {
     fetchSyllabusItems();
@@ -34,29 +42,35 @@ const Syllabus = () => {
   }, []);
 
   const fetchSyllabusItems = async () => {
+    setLoading(true);
     try {
-      const response = await axios.get('/api/list/syllabus');
+      const response = await axios.get('http://127.0.0.1:8000/api/all_syllabus');
       setSyllabusItems(response.data);
     } catch (error) {
       console.error('Error fetching syllabus items:', error);
+      setError('Failed to fetch syllabus items');
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('/api/list/categories');
+      const response = await axios.get('http://127.0.0.1:8000/api/category/all_category');
       setCategories(response.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setError('Failed to fetch categories');
     }
   };
 
   const fetchLevels = async () => {
     try {
-      const response = await axios.get('/api/list/levels');
+      const response = await axios.get('http://127.0.0.1:8000/api/level/all_levels');
       setLevels(response.data);
     } catch (error) {
       console.error('Error fetching levels:', error);
+      setError('Failed to fetch levels');
     }
   };
 
@@ -70,19 +84,25 @@ const Syllabus = () => {
   };
 
   const handleSave = async () => {
+    if (!currentItem.syllabus_name || !currentItem.category_id || !currentItem.level_id || !currentItem.amount) {
+      setError('All fields are required');
+      return;
+    }
     try {
       if (currentItem.id === null) {
         // Create new syllabus item
-        const response = await axios.post('/api/add/syllabus', currentItem);
+        const response = await axios.post('http://127.0.0.1:8000/api/syllabus/add_syllabus', currentItem);
         setSyllabusItems([...syllabusItems, response.data]);
       } else {
         // Update existing syllabus item
-        await axios.put(`/api/update/syllabus/${currentItem.id}`, currentItem);
+        await axios.put(`http://127.0.0.1:8000/api/syllabus/update_syllabus/${currentItem.id}`, currentItem);
         setSyllabusItems(syllabusItems.map(item => item.id === currentItem.id ? currentItem : item));
       }
       setOpen(false);
+      setSnackbarOpen(true);
     } catch (error) {
-      console.error('Error saving syllabus item:', error);
+      console.error('Error updating syllabus item:', error);
+      setError('Failed to update syllabus item');
     }
   };
 
@@ -93,48 +113,59 @@ const Syllabus = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/delete/syllabus/${id}`);
+      await axios.delete(`http://127.0.0.1:8000/api/syllabus/delete_syllabus/${id}`);
       setSyllabusItems(syllabusItems.filter(item => item.id !== id));
+      setSnackbarOpen(true);
     } catch (error) {
       console.error('Error deleting syllabus item:', error);
+      setError('Failed to delete syllabus item');
     }
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   return (
     <div>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h5" gutterBottom>
         Manage Syllabus
       </Typography>
       <Button variant="contained" color="primary" onClick={handleClickOpen}>
         Add Syllabus Item
       </Button>
-      <TableContainer component={Paper} style={{ marginTop: '20px' }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Syllabus Name</TableCell>
-              <TableCell>Category</TableCell>
-              <TableCell>Level</TableCell>
-              <TableCell>Amount</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {syllabusItems.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.syllabus_name}</TableCell>
-                <TableCell>{categories.find(cat => cat.id === item.category_id)?.name || 'Unknown'}</TableCell>
-                <TableCell>{levels.find(lvl => lvl.id === item.level_id)?.name || 'Unknown'}</TableCell>
-                <TableCell>{item.amount}</TableCell>
-                <TableCell>
-                  <Button color="primary" onClick={() => handleEdit(item)}>Edit</Button>
-                  <Button color="secondary" onClick={() => handleDelete(item.id)}>Delete</Button>
-                </TableCell>
+      {loading ? (
+        <CircularProgress style={{ marginTop: '20px' }} />
+      ) : (
+        <TableContainer component={Paper} style={{ marginTop: '20px' }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Syllabus Name</TableCell>
+                <TableCell>Category</TableCell>
+                <TableCell>Level</TableCell>
+                <TableCell>Amount</TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {syllabusItems.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.syllabus_name}</TableCell>
+                  <TableCell>{categories.find(cat => cat.id === item.category_id)?.name || 'Unknown'}</TableCell>
+                  <TableCell>{levels.find(lvl => lvl.id === item.level_id)?.name || 'Unknown'}</TableCell>
+                  <TableCell>{item.amount}</TableCell>
+                  <TableCell>
+                    <Button color="primary" onClick={() => handleEdit(item)}>Edit</Button>
+                    <Button color="secondary" onClick={() => handleDelete(item.id)}>Delete</Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+      {error && <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{currentItem.id === null ? 'Add Syllabus' : 'Edit Syllabus Item'}</DialogTitle>
         <DialogContent>
@@ -150,32 +181,33 @@ const Syllabus = () => {
             value={currentItem.syllabus_name}
             onChange={(e) => setCurrentItem({ ...currentItem, syllabus_name: e.target.value })}
           />
-          <Select
-            margin="dense"
-            label="Category"
-            fullWidth
-            value={currentItem.category_id}
-            onChange={(e) => setCurrentItem({ ...currentItem, category_id: e.target.value })}
-          >
-            {categories.map(category => (
-              <MenuItem key={category.id} value={category.id}>
-                {category.name}
-              </MenuItem>
-            ))}
-          </Select>
-          <Select
-            margin="dense"
-            label="Level"
-            fullWidth
-            value={currentItem.level_id}
-            onChange={(e) => setCurrentItem({ ...currentItem, level_id: e.target.value })}
-          >
-            {levels.map(level => (
-              <MenuItem key={level.id} value={level.id}>
-                {level.name}
-              </MenuItem>
-            ))}
-          </Select>
+          <div className="form-control">
+            <label>Category</label>
+            <select
+              value={currentItem.category_id !== null ? currentItem.category_id : ''}
+              onChange={(e) => setCurrentItem({ ...currentItem, category_id: e.target.value })}
+            >
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.category_name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-control">
+            <label>Level</label>
+            <select
+              value={currentItem.level_id !== null ? currentItem.level_id : ''}
+              onChange={(e) => setCurrentItem({ ...currentItem, level_id: e.target.value })}
+            >
+              {levels.map((level) => (
+                <option key={level.id} value={level.id}>
+                  {level.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <TextField
             margin="dense"
             label="Amount"
@@ -194,6 +226,11 @@ const Syllabus = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity="success">
+          Operation successful!
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

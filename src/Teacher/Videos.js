@@ -41,6 +41,14 @@ const Videos = () => {
       await axios.post('YOUR_POST_API_URL', formData);
       setSuccess('Video added successfully');
       fetchVideos();
+      // Clear form fields after successful submission
+      setFormData({
+        topic_uid: '',
+        student_uid: '',
+        student_subject_id: '',
+        title: '',
+        youtube_url: ''
+      });
     } catch (error) {
       setError('Error adding video');
     }
@@ -67,6 +75,8 @@ const Videos = () => {
                   onChange={handleChange}
                   fullWidth
                   required
+                  error={formData.topic_uid === '' && error !== null}
+                  helperText={formData.topic_uid === '' && error !== null ? 'Topic UID is required' : ''}
                 />
               </Grid>
               {/* Add other fields similarly */}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Grid, Box, Typography, Pagination } from '@mui/material';
+import { TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Grid, Box, Typography, Pagination, Snackbar, Alert } from '@mui/material';
 import axios from 'axios';
 
 const initialFormState = {
@@ -9,16 +9,17 @@ const initialFormState = {
   level: '',
   subject: '',
   estimated_fee: '',
-  file: '',
+  file: null,
   description: '',
-  latlong: '',
+  latitude: '',
+  longitude: '',
   status: '',
 };
 
 const formSteps = [
   ['auth_id', 'name', 'registration_number', 'level'],
   ['subject', 'estimated_fee', 'file', 'description'],
-  ['latlong', 'status'],
+  ['latitude', 'longitude', 'status'],
 ];
 
 const ClassRegistration = () => {
@@ -27,6 +28,9 @@ const ClassRegistration = () => {
   const [editingId, setEditingId] = useState(null);
   const [page, setPage] = useState(1);
   const [formStep, setFormStep] = useState(0);
+  const [errors, setErrors] = useState({});
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
   const rowsPerPage = 5;
 
   useEffect(() => {
@@ -35,30 +39,50 @@ const ClassRegistration = () => {
       .catch(error => console.error('Error fetching classes:', error));
   }, []);
 
+  const validate = () => {
+    const newErrors = {};
+    formSteps[formStep].forEach(key => {
+      if (!formData[key] && key !== 'file') {
+        newErrors[key] = 'This field is required';
+      }
+    });
+    if (formData['estimated_fee'] && isNaN(formData['estimated_fee'])) {
+      newErrors['estimated_fee'] = 'Estimated fee must be a number';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, files } = e.target;
+    setFormData({ ...formData, [name]: files ? files[0] : value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (editingId) {
-      axios.put(`/api/classes/${editingId}`, formData)
-        .then(response => {
-          setClasses(classes.map(cls => cls.id === editingId ? response.data : cls));
-          setEditingId(null);
-          setFormData(initialFormState);
-        })
-        .catch(error => console.error('Error updating class:', error));
-    } else {
-      axios.post('/api/classes', formData)
-        .then(response => {
-          setClasses([...classes, response.data]);
-          setFormData(initialFormState);
-        })
-        .catch(error => console.error('Error creating class:', error));
-    }
-    setFormStep(0);
+    if (!validate()) return;
+    const formSubmitData = new FormData();
+    Object.keys(formData).forEach(key => {
+      formSubmitData.append(key, formData[key]);
+    });
+
+    const axiosCall = editingId
+      ? axios.put(`/api/classes/${editingId}`, formSubmitData)
+      : axios.post('/api/classes', formSubmitData);
+
+    axiosCall
+      .then(response => {
+        const updatedClasses = editingId
+          ? classes.map(cls => cls.id === editingId ? response.data : cls)
+          : [...classes, response.data];
+        setClasses(updatedClasses);
+        setEditingId(null);
+        setFormData(initialFormState);
+        setFormStep(0);
+        setSnackbarMessage(editingId ? 'Class updated successfully' : 'Class created successfully');
+        setSnackbarOpen(true);
+      })
+      .catch(error => console.error('Error submitting class:', error));
   };
 
   const handleEdit = (id) => {
@@ -70,7 +94,11 @@ const ClassRegistration = () => {
 
   const handleDelete = (id) => {
     axios.delete(`/api/classes/${id}`)
-      .then(() => setClasses(classes.filter(cls => cls.id !== id)))
+      .then(() => {
+        setClasses(classes.filter(cls => cls.id !== id));
+        setSnackbarMessage('Class deleted successfully');
+        setSnackbarOpen(true);
+      })
       .catch(error => console.error('Error deleting class:', error));
   };
 
@@ -81,29 +109,49 @@ const ClassRegistration = () => {
   const displayClasses = classes.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
   const handleNext = () => {
-    setFormStep((prevStep) => prevStep + 1);
+    if (validate()) {
+      setFormStep((prevStep) => prevStep + 1);
+    }
   };
 
   const handlePrev = () => {
     setFormStep((prevStep) => prevStep - 1);
   };
 
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
   return (
     <Box p={3}>
-      <Typography variant="h4" gutterBottom>Class Registration</Typography>
+      <Typography variant="h5" gutterBottom>Class Registration</Typography>
       <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
             {formSteps[formStep].map((key) => (
               <Grid item xs={12} sm={6} key={key}>
-                <TextField
-                  name={key}
-                  label={key.replace('_', ' ')}
-                  value={formData[key]}
-                  onChange={handleChange}
-                  margin="normal"
-                  fullWidth
-                />
+                {key === 'file' ? (
+                  <Button variant="contained" component="label" fullWidth>
+                    Upload File
+                    <input
+                      type="file"
+                      name={key}
+                      hidden
+                      onChange={handleChange}
+                    />
+                  </Button>
+                ) : (
+                  <TextField
+                    name={key}
+                    label={key.replace('_', ' ')}
+                    value={formData[key]}
+                    onChange={handleChange}
+                    margin="normal"
+                    fullWidth
+                    error={!!errors[key]}
+                    helperText={errors[key]}
+                  />
+                )}
               </Grid>
             ))}
           </Grid>
@@ -147,6 +195,11 @@ const ClassRegistration = () => {
           color="primary"
         />
       </Box>
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

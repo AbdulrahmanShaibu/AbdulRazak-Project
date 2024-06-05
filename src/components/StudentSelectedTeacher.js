@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Typography, TextField, Button, MenuItem, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton } from '@mui/material';
+import { Container, Typography, TextField, Button, MenuItem, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Snackbar, Alert } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const StudentSelectedTeacher = () => {
@@ -12,17 +12,21 @@ const StudentSelectedTeacher = () => {
         subject_id: '',
         rate_no: ''
     });
+    const [error, setError] = useState('');
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
 
-    const fetchData = () => {
-        axios.get('http://localhost:5000/teachers').then((response) => {
-            setTeachers(response.data);
-        });
-        axios.get('http://localhost:5000/subjects').then((response) => {
-            setSubjects(response.data);
-        });
-        axios.get('http://localhost:5000/classes').then((response) => {
-            setClasses(response.data);
-        });
+    const fetchData = async () => {
+        try {
+            const teachersResponse = await axios.get('http://localhost:5000/teachers');
+            setTeachers(teachersResponse.data);
+            const subjectsResponse = await axios.get('http://localhost:5000/subjects');
+            setSubjects(subjectsResponse.data);
+            const classesResponse = await axios.get('http://localhost:5000/classes');
+            setClasses(classesResponse.data);
+        } catch (error) {
+            setError('Error fetching data');
+        }
     };
 
     useEffect(() => {
@@ -36,22 +40,41 @@ const StudentSelectedTeacher = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        axios.post('http://localhost:5000/classes', formData).then(() => {
+        if (isNaN(formData.rate_no)) {
+            setError('Rate No must be a number');
+            return;
+        }
+
+        try {
+            await axios.post('http://localhost:5000/classes', formData);
             fetchData();
             setFormData({
                 teacher_id: '',
                 subject_id: '',
                 rate_no: ''
             });
-        });
+            setSnackbarMessage('Class added successfully');
+            setSnackbarOpen(true);
+        } catch (error) {
+            setError('Error adding class');
+        }
     };
 
-    const handleDelete = (id) => {
-        axios.delete(`http://localhost:5000/classes/${id}`).then(() => {
+    const handleDelete = async (id) => {
+        try {
+            await axios.delete(`http://localhost:5000/classes/${id}`);
             fetchData();
-        });
+            setSnackbarMessage('Class deleted successfully');
+            setSnackbarOpen(true);
+        } catch (error) {
+            setError('Error deleting class');
+        }
+    };
+
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
     };
 
     return (
@@ -59,6 +82,7 @@ const StudentSelectedTeacher = () => {
             <Typography variant="h6" gutterBottom>
                 Class Management
             </Typography>
+            {error && <Alert severity="error">{error}</Alert>}
             <Paper sx={{ margin: 'auto', padding: 2 }}>
                 <form onSubmit={handleSubmit}>
                     <Grid container spacing={2}>
@@ -98,12 +122,15 @@ const StudentSelectedTeacher = () => {
                         </Grid>
                         <Grid item xs={12} sm={4}>
                             <TextField
+                                disabled={true}
                                 label="Rate No"
                                 name="rate_no"
                                 value={formData.rate_no}
                                 onChange={handleChange}
                                 fullWidth
                                 required
+                                error={isNaN(formData.rate_no)}
+                                helperText={isNaN(formData.rate_no) ? 'Rate No must be a number' : ''}
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -140,6 +167,11 @@ const StudentSelectedTeacher = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
+            <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+                <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Container>
     );
 };

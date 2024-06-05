@@ -3,7 +3,7 @@ import axios from 'axios';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
     Button, TextField, Select, MenuItem, FormControl, InputLabel, Container, Grid,
-    CardContent, Typography, Card
+    CardContent, Typography, Card, CircularProgress, Snackbar, Alert
 } from '@mui/material';
 
 const Class = () => {
@@ -30,22 +30,32 @@ const Class = () => {
     const [isEdit, setIsEdit] = useState(false);
     const [editId, setEditId] = useState(null);
     const [step, setStep] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
     useEffect(() => {
         const fetchData = async () => {
-            const [classData, categoryData, teacherData, levelData, syllabusData] = await Promise.all([
-                axios.get('/api/classes'),
-                axios.get('/api/categories'),
-                axios.get('/api/teachers'),
-                axios.get('/api/levels'),
-                axios.get('/api/syllabi')
-            ]);
+            setLoading(true);
+            try {
+                const [classData, categoryData, teacherData, levelData, syllabusData] = await Promise.all([
+                    axios.get('/api/classes'),
+                    axios.get('/api/categories'),
+                    axios.get('/api/teachers'),
+                    axios.get('/api/levels'),
+                    axios.get('/api/syllabi')
+                ]);
 
-            setClasses(classData.data);
-            setCategories(categoryData.data);
-            setTeachers(teacherData.data);
-            setLevels(levelData.data);
-            setSyllabi(syllabusData.data);
+                setClasses(classData.data);
+                setCategories(categoryData.data);
+                setTeachers(teacherData.data);
+                setLevels(levelData.data);
+                setSyllabi(syllabusData.data);
+            } catch (error) {
+                console.error(error);
+                setSnackbar({ open: true, message: 'Failed to fetch data', severity: 'error' });
+            } finally {
+                setLoading(false);
+            }
         };
 
         fetchData();
@@ -61,31 +71,40 @@ const Class = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isEdit) {
-            await axios.put(`/api/classes/${editId}`, formData);
-            setIsEdit(false);
-            setEditId(null);
-        } else {
-            await axios.post('/api/classes', formData);
+        setLoading(true);
+        try {
+            if (isEdit) {
+                await axios.put(`/api/classes/${editId}`, formData);
+                setIsEdit(false);
+                setEditId(null);
+            } else {
+                await axios.post('/api/classes', formData);
+            }
+            const classData = await axios.get('/api/classes');
+            setClasses(classData.data);
+            setFormData({
+                auth_id: '',
+                class_type: '',
+                category_id: '',
+                level_id: '',
+                syllabus_id: '',
+                amount: '',
+                payment_type: '',
+                provider: '',
+                phone: '',
+                duration: '',
+                start_date: '',
+                end_date: '',
+                teacher_id: '',
+            });
+            setStep(0);
+            setSnackbar({ open: true, message: 'Class saved successfully', severity: 'success' });
+        } catch (error) {
+            console.error(error);
+            setSnackbar({ open: true, message: 'Failed to save class', severity: 'error' });
+        } finally {
+            setLoading(false);
         }
-        const classData = await axios.get('/api/classes');
-        setClasses(classData.data);
-        setFormData({
-            auth_id: '',
-            class_type: '',
-            category_id: '',
-            level_id: '',
-            syllabus_id: '',
-            amount: '',
-            payment_type: '',
-            provider: '',
-            phone: '',
-            duration: '',
-            start_date: '',
-            end_date: '',
-            teacher_id: '',
-        });
-        setStep(0);
     };
 
     const handleEdit = (cls) => {
@@ -96,9 +115,18 @@ const Class = () => {
     };
 
     const handleDelete = async (id) => {
-        await axios.delete(`/api/classes/${id}`);
-        const classData = await axios.get('/api/classes');
-        setClasses(classData.data);
+        setLoading(true);
+        try {
+            await axios.delete(`/api/classes/${id}`);
+            const classData = await axios.get('/api/classes');
+            setClasses(classData.data);
+            setSnackbar({ open: true, message: 'Class deleted successfully', severity: 'success' });
+        } catch (error) {
+            console.error(error);
+            setSnackbar({ open: true, message: 'Failed to delete class', severity: 'error' });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const nextStep = () => {
@@ -107,6 +135,22 @@ const Class = () => {
 
     const prevStep = () => {
         setStep((prevStep) => Math.max(prevStep - 1, 0));
+    };
+
+    const validateForm = () => {
+        const { auth_id, class_type, category_id, level_id, syllabus_id, amount, payment_type, provider, phone, duration, start_date, end_date, teacher_id } = formData;
+        switch (step) {
+            case 0:
+                return auth_id && class_type && category_id && level_id;
+            case 1:
+                return syllabus_id && amount && payment_type && provider;
+            case 2:
+                return phone && duration && start_date && end_date;
+            case 3:
+                return teacher_id;
+            default:
+                return false;
+        }
     };
 
     const renderStep = () => {
@@ -122,6 +166,7 @@ const Class = () => {
                                 onChange={handleChange}
                                 fullWidth
                                 margin="normal"
+                                required
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -132,10 +177,11 @@ const Class = () => {
                                 onChange={handleChange}
                                 fullWidth
                                 margin="normal"
+                                required
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <FormControl fullWidth margin="normal">
+                            <FormControl fullWidth margin="normal" required>
                                 <InputLabel>Category</InputLabel>
                                 <Select
                                     name="category_id"
@@ -151,7 +197,7 @@ const Class = () => {
                             </FormControl>
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <FormControl fullWidth margin="normal">
+                            <FormControl fullWidth margin="normal" required>
                                 <InputLabel>Level</InputLabel>
                                 <Select
                                     name="level_id"
@@ -172,7 +218,7 @@ const Class = () => {
                 return (
                     <>
                         <Grid item xs={12} sm={6}>
-                            <FormControl fullWidth margin="normal">
+                            <FormControl fullWidth margin="normal" required>
                                 <InputLabel>Syllabus</InputLabel>
                                 <Select
                                     name="syllabus_id"
@@ -195,6 +241,7 @@ const Class = () => {
                                 onChange={handleChange}
                                 fullWidth
                                 margin="normal"
+                                required
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -205,6 +252,7 @@ const Class = () => {
                                 onChange={handleChange}
                                 fullWidth
                                 margin="normal"
+                                required
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -215,6 +263,7 @@ const Class = () => {
                                 onChange={handleChange}
                                 fullWidth
                                 margin="normal"
+                                required
                             />
                         </Grid>
                     </>
@@ -230,6 +279,7 @@ const Class = () => {
                                 onChange={handleChange}
                                 fullWidth
                                 margin="normal"
+                                required
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -240,6 +290,7 @@ const Class = () => {
                                 onChange={handleChange}
                                 fullWidth
                                 margin="normal"
+                                required
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -252,6 +303,7 @@ const Class = () => {
                                 fullWidth
                                 margin="normal"
                                 InputLabelProps={{ shrink: true }}
+                                required
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -264,6 +316,7 @@ const Class = () => {
                                 fullWidth
                                 margin="normal"
                                 InputLabelProps={{ shrink: true }}
+                                required
                             />
                         </Grid>
                     </>
@@ -272,7 +325,7 @@ const Class = () => {
                 return (
                     <>
                         <Grid item xs={12}>
-                            <FormControl fullWidth margin="normal">
+                            <FormControl fullWidth margin="normal" required>
                                 <InputLabel>Teacher</InputLabel>
                                 <Select
                                     name="teacher_id"
@@ -296,6 +349,7 @@ const Class = () => {
 
     return (
         <Container>
+            {loading && <CircularProgress />}
             <Card sx={{ maxWidth: 800, margin: 'auto', padding: 2 }}>
                 <CardContent>
                     <Typography variant="h6"
@@ -321,12 +375,12 @@ const Class = () => {
                                     </Button>
                                 )}
                                 {step < 3 && (
-                                    <Button onClick={nextStep} variant="contained" color="primary">
+                                    <Button onClick={nextStep} variant="contained" color="primary" disabled={!validateForm()}>
                                         Next
                                     </Button>
                                 )}
                                 {step === 3 && (
-                                    <Button type="submit" variant="contained" color="primary">
+                                    <Button type="submit" variant="contained" color="primary" disabled={!validateForm()}>
                                         {isEdit ? 'Update Class' : 'Add Class'}
                                     </Button>
                                 )}
@@ -382,6 +436,15 @@ const Class = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={6000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+            >
+                <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Container>
     );
 };

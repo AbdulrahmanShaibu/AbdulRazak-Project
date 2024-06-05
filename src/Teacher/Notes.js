@@ -1,4 +1,3 @@
-// Notes.js
 import React, { useState, useEffect } from 'react';
 import {
   Table,
@@ -14,6 +13,7 @@ import {
   Grid,
   IconButton,
   Tooltip,
+  CircularProgress,
 } from '@mui/material';
 import { DeleteOutline as DeleteIcon, EditOutlined as EditIcon } from '@mui/icons-material';
 
@@ -21,6 +21,7 @@ const Notes = () => {
   const [notes, setNotes] = useState([]);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     student_uid: '',
     topic_uid: '',
@@ -41,69 +42,96 @@ const Notes = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Implement form validation here
-    // Example: if (!formData.title || !formData.document) { setError("Title and Document are required."); return; }
+    if (!formData.title || !formData.document) {
+      setError("Title and Document are required.");
+      return;
+    }
+
+    setLoading(true);
 
     // Implement create note API call
-    // Example: createNote(formData)
     // .then(() => {
     //    setSuccess("Note created successfully.");
-    //    fetchNotes(); // Refetch notes to update table
+    //    setFormData({ student_uid: '', topic_uid: '', title: '', document: '' });
+    //    fetchNotes();
     // })
-    // .catch((error) => setError("Failed to create note: " + error.message));
+    // .catch((error) => setError("Failed to create note: " + error.message))
+    // .finally(() => setLoading(false));
+  };
+
+  const handleDelete = (id) => {
+    // Implement delete note API call
+    // .then(() => {
+    //    setSuccess("Note deleted successfully.");
+    //    fetchNotes();
+    // })
+    // .catch((error) => setError("Failed to delete note: " + error.message));
   };
 
   return (
-    <div>
+    <div style={{ padding: '20px' }}>
       <Typography variant="h4" gutterBottom>
         Notes
       </Typography>
 
-      <Grid container spacing={2}>
+      <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Paper style={{ padding: '10px' }}>
-            <form onSubmit={handleSubmit} style={{ padding: '5px' }}>
-              <TextField
-                fullWidth
-                label="Student UID"
-                name="student_uid"
-                value={formData.student_uid}
-                onChange={handleChange}
-                required
-              />
-              <TextField
-                fullWidth
-                label="Topic UID"
-                name="topic_uid"
-                value={formData.topic_uid}
-                onChange={handleChange}
-                required
-              />
-              <TextField
-                fullWidth
-                label="Title"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-              />
-              <TextField
-                fullWidth
-                label="Document"
-                name="document"
-                value={formData.document}
-                onChange={handleChange}
-                required
-              />
-              <Button type="submit" variant="contained" color="primary">
-                Add Note
-              </Button>
+          <Paper style={{ padding: '20px' }}>
+            <form onSubmit={handleSubmit}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Student UID"
+                    name="student_uid"
+                    value={formData.student_uid}
+                    onChange={handleChange}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Topic UID"
+                    name="topic_uid"
+                    value={formData.topic_uid}
+                    onChange={handleChange}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Document"
+                    name="document"
+                    value={formData.document}
+                    onChange={handleChange}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Button type="submit" variant="contained" color="primary">
+                    Add Note
+                  </Button>
+                  {loading && <CircularProgress style={{ marginLeft: '10px' }} />}
+                </Grid>
+              </Grid>
             </form>
             {error && <Typography color="error">{error}</Typography>}
             {success && <Typography color="primary">{success}</Typography>}
           </Paper>
         </Grid>
         <Grid item xs={12} md={6}>
-          {/* Display Table */}
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
@@ -127,7 +155,7 @@ const Notes = () => {
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Delete">
-                        <IconButton aria-label="delete">
+                        <IconButton aria-label="delete" onClick={() => handleDelete(note.id)}>
                           <DeleteIcon />
                         </IconButton>
                       </Tooltip>
@@ -139,7 +167,6 @@ const Notes = () => {
           </TableContainer>
         </Grid>
       </Grid>
-
     </div>
   );
 };
