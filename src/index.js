@@ -54,6 +54,7 @@ import Rate from './Payments/Rate';
 import Reviews from './Payments/Reviews';
 import Payments from './Payments/Payments';
 import PaymentsRecord from './Payments/PaymentsRecord';
+import ClassWork from './Teacher/ClassWork';
 
 
 
@@ -91,6 +92,7 @@ root.render(
           <Route path="/teacher/notes" element={<Notes />} />
           <Route path="/teacher/topics" element={<Topics />} /> {/* Add route for Topics component */}
           <Route path="/teacher/videos" element={<Videos />} />
+          <Route path="/teacher/class-work" element={<ClassWork />} />
 
           {/* Payment Components */}
           <Route path="/rate" element={<Rate />} />

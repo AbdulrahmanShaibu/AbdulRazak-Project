@@ -20,7 +20,9 @@ import {
     Topic,
     VideoFile,
     VideoCall,
-    VideoCameraBack
+    VideoCameraBack,
+    Work,
+    WorkspacePremiumOutlined
 } from "@mui/icons-material";
 import { CgProfile, CgUserList } from 'react-icons/cg';
 import { BiRegistered, BiUserCircle } from 'react-icons/bi';
@@ -162,6 +164,12 @@ const ResponsiveDrawer = () => {
                                 <GiClassicalKnowledge />
                             </ListItemIcon>
                             <ListItemText primary="Class Invitation" />
+                        </ListItemButton>
+                        <ListItemButton component={Link} to="/teacher/class-work" sx={{ pl: 4, color: "white" }}>
+                            <ListItemIcon sx={{ color: "white" }}>
+                                <WorkIcon/>
+                            </ListItemIcon>
+                            <ListItemText primary="Class-Work" />
                         </ListItemButton>
                         <ListItemButton component={Link} to="/teacher/class-status" sx={{ pl: 4, color: "white" }}>
                             <ListItemIcon sx={{ color: "white" }}>

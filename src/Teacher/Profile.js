@@ -11,13 +11,16 @@ const Profile = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [profileData, setProfileData] = useState({
     id: null,
+    auth_id: '',
     name: '',
     phone: '',
     email: '',
     country: '',
     address: '',
-    description: ''
+    description: '',
+    cv: ''
   });
+
 
   const [errors, setErrors] = useState({});
 
@@ -26,65 +29,112 @@ const Profile = () => {
   }, []);
 
   const fetchProfile = async () => {
-    const response = await axios.get('http://localhost:3001/profile');
+    const response = await axios.get('http://127.0.0.1:8000/api/teacher/get_all_teachers');
     setProfile(response.data);
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setProfileData({ ...profileData, [name]: value });
+    const { name, value, files } = e.target;
+    if (files) {
+      setProfileData({ ...profileData, [name]: files[0] });
+    } else {
+      setProfileData({ ...profileData, [name]: value });
+    }
+  };
+
+
+  const handleFileChange = (e) => {
+    setProfileData({ ...profileData, cv: e.target.files[0] });
   };
 
   const validate = () => {
     let tempErrors = {};
+    tempErrors.auth_id = profileData.auth_id ? "" : "This field is required.";
     tempErrors.name = profileData.name ? "" : "This field is required.";
     tempErrors.phone = profileData.phone ? (/^\d{10}$/.test(profileData.phone) ? "" : "Phone number is not valid.") : "This field is required.";
     tempErrors.email = profileData.email ? (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(profileData.email) ? "" : "Email is not valid.") : "This field is required.";
     tempErrors.country = profileData.country ? "" : "This field is required.";
     tempErrors.address = profileData.address ? "" : "This field is required.";
     tempErrors.description = profileData.description ? "" : "This field is required.";
+    tempErrors.cv = profileData.cv ? "" : "Cv is required.";
 
     setErrors(tempErrors);
     return Object.values(tempErrors).every(x => x === "");
   };
 
+
   const handleSubmit = async () => {
     if (validate()) {
-      if (profileData.id) {
-        await axios.put(`http://localhost:3001/profile/${profileData.id}`, profileData);
+      const formData = new FormData();
+      formData.append('auth_id', profileData.auth_id);
+      formData.append('name', profileData.name);
+      formData.append('phone', profileData.phone);
+      formData.append('email', profileData.email);
+      formData.append('country', profileData.country);
+      formData.append('address', profileData.address);
+      formData.append('description', profileData.description);
+      if (profileData.cv instanceof File) {
+        formData.append('cv', profileData.cv);
       } else {
-        await axios.post('http://localhost:3001/profile', profileData);
+        formData.append('cv', profileData.cv); // Treat it as a string
       }
-      fetchProfile();
-      handleClose();
-      setSnackbarMessage(profileData.id ? 'Profile updated successfully!' : 'Profile created successfully!');
-      setSnackbarOpen(true);
+
+      try {
+        if (profileData.id) {
+          await axios.put(`http://127.0.0.1:8000/api/teacher/update_teacher/${profileData.id}`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+        } else {
+          await axios.post('http://127.0.0.1:8000/api/teacher/add_teacher/', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+        }
+        fetchProfile();
+        handleClose();
+        setSnackbarMessage(profileData.id ? 'Profile updated successfully!' : 'Profile created successfully!');
+        setSnackbarOpen(true);
+      } catch (error) {
+        console.error('There was an error!', error.response.data);
+      }
     }
   };
 
+
+
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:3001/profile/${id}`);
-    fetchProfile();
-    setSnackbarMessage('Profile deleted successfully!');
-    setSnackbarOpen(true);
+    try {
+      await axios.delete(`http://127.0.0.1:8000/api/teacher/delete_teacher/${id}`);
+      fetchProfile();
+      setSnackbarMessage('Profile deleted successfully!');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('There was an error deleting the profile!', error);
+    }
   };
 
+
   const handleOpen = (data = {}) => {
-    setProfileData(data);
+    setProfileData({ ...profileData, ...data }); // Merge existing profileData with passed data
     setErrors({});
     setOpen(true);
-  };
+};
+
 
   const handleClose = () => {
     setOpen(false);
     setProfileData({
-      id: null,
+      // id: null,
       name: '',
       phone: '',
       email: '',
       country: '',
       address: '',
-      description: ''
+      description: '',
+      cv: null
     });
     setErrors({});
   };
@@ -108,6 +158,7 @@ const Profile = () => {
               <TableCell>Country</TableCell>
               <TableCell>Address</TableCell>
               <TableCell>Description</TableCell>
+              <TableCell>CV</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -120,6 +171,7 @@ const Profile = () => {
                 <TableCell>{prof.country}</TableCell>
                 <TableCell>{prof.address}</TableCell>
                 <TableCell>{prof.description}</TableCell>
+                <TableCell>{prof.cv}</TableCell>
                 <TableCell>
                   <Button color="primary" onClick={() => handleOpen(prof)}>Edit</Button>
                   <Button color="secondary" onClick={() => handleDelete(prof.id)}>Delete</Button>
@@ -133,6 +185,17 @@ const Profile = () => {
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{profileData.id ? 'Edit Profile' : 'Create Profile'}</DialogTitle>
         <DialogContent>
+          <TextField
+            margin="dense"
+            label="Auth ID"
+            name="auth_id"
+            value={profileData.auth_id}
+            onChange={handleInputChange}
+            fullWidth
+            required
+            error={!!errors.auth_id}
+            helperText={errors.auth_id}
+          />
           <TextField
             margin="dense"
             label="Name"
@@ -199,7 +262,16 @@ const Profile = () => {
             error={!!errors.description}
             helperText={errors.description}
           />
+          <input
+            type="file"
+            name="cv"
+            onChange={handleInputChange}
+            required
+            style={{ marginTop: 20 }}
+          />
         </DialogContent>
+
+
         <DialogActions>
           <Button onClick={handleClose} color="primary">Cancel</Button>
           <Button onClick={handleSubmit} color="primary">{profileData.id ? 'Update' : 'Add'}</Button>

@@ -3,14 +3,14 @@ import axios from 'axios';
 import { Container, Typography, TextField, Button, MenuItem, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Snackbar, Alert } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const StudentSelectedTeacher = () => {
+const ClassManagement = () => {
     const [teachers, setTeachers] = useState([]);
     const [subjects, setSubjects] = useState([]);
-    const [classes, setClasses] = useState([]);
+    const [classInstances, setClassInstances] = useState([]);
     const [formData, setFormData] = useState({
-        teacher_id: '',
-        subject_id: '',
-        rate_no: ''
+        name: '',
+        subject_name: '',
+        rate: ''
     });
     const [error, setError] = useState('');
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -18,12 +18,14 @@ const StudentSelectedTeacher = () => {
 
     const fetchData = async () => {
         try {
-            const teachersResponse = await axios.get('http://localhost:5000/teachers');
+            const teachersResponse = await axios.get('http://127.0.0.1:8000/api/teacher/get_all_teachers/');
             setTeachers(teachersResponse.data);
-            const subjectsResponse = await axios.get('http://localhost:5000/subjects');
+            const subjectsResponse = await axios.get('http://127.0.0.1:8000/api/subject/all_subject');
             setSubjects(subjectsResponse.data);
-            const classesResponse = await axios.get('http://localhost:5000/classes');
-            setClasses(classesResponse.data);
+            const classesResponse = await axios.get('http://127.0.0.1:8000/api/teacher/all_rates');
+            setClassInstances(classesResponse.data);
+
+            console.log(subjectsResponse.data);
         } catch (error) {
             setError('Error fetching data');
         }
@@ -42,8 +44,8 @@ const StudentSelectedTeacher = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isNaN(formData.rate_no)) {
-            setError('Rate No must be a number');
+        if (isNaN(formData.rate)) {
+            setError('Rate must be a number');
             return;
         }
 
@@ -51,12 +53,13 @@ const StudentSelectedTeacher = () => {
             await axios.post('http://localhost:5000/classes', formData);
             fetchData();
             setFormData({
-                teacher_id: '',
-                subject_id: '',
-                rate_no: ''
+                name: '',
+                subject_name: '',
+                rate: ''
             });
             setSnackbarMessage('Class added successfully');
             setSnackbarOpen(true);
+            setError(''); // Clear error after successful action
         } catch (error) {
             setError('Error adding class');
         }
@@ -68,6 +71,7 @@ const StudentSelectedTeacher = () => {
             fetchData();
             setSnackbarMessage('Class deleted successfully');
             setSnackbarOpen(true);
+            setError(''); // Clear error after successful action
         } catch (error) {
             setError('Error deleting class');
         }
@@ -90,8 +94,8 @@ const StudentSelectedTeacher = () => {
                             <TextField
                                 select
                                 label="Teacher"
-                                name="teacher_id"
-                                value={formData.teacher_id}
+                                name="name"
+                                value={formData.name}
                                 onChange={handleChange}
                                 fullWidth
                                 required
@@ -107,8 +111,8 @@ const StudentSelectedTeacher = () => {
                             <TextField
                                 select
                                 label="Subject"
-                                name="subject_id"
-                                value={formData.subject_id}
+                                name="subject_name"
+                                value={formData.subject_name}
                                 onChange={handleChange}
                                 fullWidth
                                 required
@@ -122,15 +126,14 @@ const StudentSelectedTeacher = () => {
                         </Grid>
                         <Grid item xs={12} sm={4}>
                             <TextField
-                                disabled={true}
-                                label="Rate No"
-                                name="rate_no"
-                                value={formData.rate_no}
+                                label="Rate"
+                                name="rate"
+                                value={formData.rate}
                                 onChange={handleChange}
                                 fullWidth
                                 required
-                                error={isNaN(formData.rate_no)}
-                                helperText={isNaN(formData.rate_no) ? 'Rate No must be a number' : ''}
+                                error={isNaN(formData.rate)}
+                                helperText={isNaN(formData.rate) ? 'Rate must be a number' : ''}
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -147,16 +150,16 @@ const StudentSelectedTeacher = () => {
                         <TableRow>
                             <TableCell>Teacher</TableCell>
                             <TableCell>Subject</TableCell>
-                            <TableCell>Rate No</TableCell>
+                            <TableCell>Rate</TableCell>
                             <TableCell>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {classes.map((row) => (
+                        {classInstances.map((row) => (
                             <TableRow key={row.id}>
-                                <TableCell>{teachers.find((t) => t.id === row.teacher_id)?.name || row.teacher_id}</TableCell>
-                                <TableCell>{subjects.find((s) => s.id === row.subject_id)?.name || row.subject_id}</TableCell>
-                                <TableCell>{row.rate_no}</TableCell>
+                                <TableCell>{teachers.find((t) => t.id === row.name)?.name || row.name}</TableCell>
+                                <TableCell>{subjects.find((s) => s.id === row.subject_name)?.name || row.subject_name}</TableCell>
+                                <TableCell>{row.rate}</TableCell>
                                 <TableCell>
                                     <IconButton onClick={() => handleDelete(row.id)} color="secondary">
                                         <DeleteIcon />
@@ -176,4 +179,4 @@ const StudentSelectedTeacher = () => {
     );
 };
 
-export default StudentSelectedTeacher;
+export default ClassManagement;

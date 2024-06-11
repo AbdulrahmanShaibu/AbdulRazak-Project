@@ -57,7 +57,7 @@ const Level = ({ categoryId }) => {
         }
 
         try {
-            const newLevel = { name: newLevelName }; // Omitting the 'id' field
+            const newLevel = { name: newLevelName }; //{id: categoryId } Include category id if required by the server
             await axios.post("http://127.0.0.1:8000/api/level/add_level/", newLevel);
             fetchLevels();
             setNewLevelName("");
@@ -89,7 +89,7 @@ const Level = ({ categoryId }) => {
         }
 
         try {
-            const updatedLevel = { name: newLevelName, category_id: categoryId };
+            const updatedLevel = { name: newLevelName }; //{id: categoryId } Include category id if required by the server
             await axios.put(`http://127.0.0.1:8000/api/level/update_level/${editingLevelId}`, updatedLevel);
             fetchLevels();
             setNewLevelName("");

@@ -6,10 +6,9 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 
-const API_BASE_URL = 'https://your-api-endpoint.com'; // Replace with your actual API base URL
+const API_BASE_URL = 'http://127.0.0.1:8000/api/teacher';
 
 const Rate = () => {
-
   const [rates, setRates] = useState([]);
   const [newRate, setNewRate] = useState('');
   const [error, setError] = useState('');
@@ -22,7 +21,7 @@ const Rate = () => {
 
   const fetchRates = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/rates`);
+      const response = await axios.get(`${API_BASE_URL}/all_rates`);
       setRates(response.data);
     } catch (error) {
       setError('Failed to fetch rates');
@@ -38,7 +37,7 @@ const Rate = () => {
     }
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/rates`, { rate: newRate });
+      const response = await axios.post(`${API_BASE_URL}/add_rates`, { rate: newRate });
       setRates([...rates, response.data]);
       setNewRate('');
       setSuccess('Rate added successfully');
@@ -51,7 +50,7 @@ const Rate = () => {
 
   const handleUpdateRate = async (id, rate) => {
     try {
-      const response = await axios.put(`${API_BASE_URL}/rates/${id}`, { rate });
+      const response = await axios.put(`${API_BASE_URL}/update_rates/${id}`, { rate });
       setRates(rates.map(r => (r.id === id ? response.data : r)));
       setSuccess('Rate updated successfully');
       setOpen(true);
@@ -63,7 +62,7 @@ const Rate = () => {
 
   const handleDeleteRate = async (id) => {
     try {
-      await axios.delete(`${API_BASE_URL}/rates/${id}`);
+      await axios.delete(`${API_BASE_URL}/delete_rate/${id}`);
       setRates(rates.filter(r => r.id !== id));
       setSuccess('Rate deleted successfully');
       setOpen(true);
@@ -97,23 +96,29 @@ const Rate = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
+              <TableCell>S/N</TableCell>
               <TableCell>Rate</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {rates.map((rate) => (
+            {rates.map((rate, index) => (
               <TableRow key={rate.id}>
-                <TableCell>{rate.id}</TableCell>
+                <TableCell>{index + 1}</TableCell>
                 <TableCell>
                   <TextField
                     value={rate.rate}
                     onChange={(e) => handleUpdateRate(rate.id, e.target.value)}
+                    fullWidth
                   />
                 </TableCell>
                 <TableCell>
-                  <Button variant="contained" color="secondary" onClick={() => handleDeleteRate(rate.id)}>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => handleDeleteRate(rate.id)}
+                    style={{ marginRight: 8 }}
+                  >
                     Delete
                   </Button>
                 </TableCell>

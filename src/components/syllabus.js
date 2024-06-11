@@ -25,12 +25,13 @@ import {
   FormControl,
 } from '@mui/material';
 import '../css/forms.css';
+
 const Syllabus = () => {
   const [syllabusItems, setSyllabusItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [levels, setLevels] = useState([]);
   const [open, setOpen] = useState(false);
-  const [currentItem, setCurrentItem] = useState({ id: null, syllabus_name: '', category_id: '', level_id: '', amount: '' });
+  const [currentItem, setCurrentItem] = useState({ id: null, sylubus_name: '', id: '', id: '', amount: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -44,8 +45,9 @@ const Syllabus = () => {
   const fetchSyllabusItems = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/all_syllabus');
+      const response = await axios.get('http://127.0.0.1:8000/api/syllabus/all_syllabus');
       setSyllabusItems(response.data);
+      console.log(response.data);
     } catch (error) {
       console.error('Error fetching syllabus items:', error);
       setError('Failed to fetch syllabus items');
@@ -58,6 +60,7 @@ const Syllabus = () => {
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/category/all_category');
       setCategories(response.data);
+      console.log(response.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
       setError('Failed to fetch categories');
@@ -68,6 +71,7 @@ const Syllabus = () => {
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/level/all_levels');
       setLevels(response.data);
+      console.log(response.data);
     } catch (error) {
       console.error('Error fetching levels:', error);
       setError('Failed to fetch levels');
@@ -75,7 +79,7 @@ const Syllabus = () => {
   };
 
   const handleClickOpen = () => {
-    setCurrentItem({ id: null, syllabus_name: '', category_id: '', level_id: '', amount: '' });
+    setCurrentItem({ id: null, sylubus_name: '', id: '', id: '', amount: '' });
     setOpen(true);
   };
 
@@ -84,24 +88,25 @@ const Syllabus = () => {
   };
 
   const handleSave = async () => {
-    if (!currentItem.syllabus_name || !currentItem.category_id || !currentItem.level_id || !currentItem.amount) {
+    if (!currentItem.sylubus_name || !currentItem.id || !currentItem.id || !currentItem.amount) {
       setError('All fields are required');
       return;
     }
     try {
       if (currentItem.id === null) {
         // Create new syllabus item
-        const response = await axios.post('http://127.0.0.1:8000/api/syllabus/add_syllabus', currentItem);
+        const response = await axios.post('http://127.0.0.1:8000/api/syllabus/add_sylubus', currentItem);
         setSyllabusItems([...syllabusItems, response.data]);
+        console.log('added responses:', response.data);
       } else {
         // Update existing syllabus item
-        await axios.put(`http://127.0.0.1:8000/api/syllabus/update_syllabus/${currentItem.id}`, currentItem);
+        await axios.put(`http://127.0.0.1:8000/api/syllabus/update_sylubus/${currentItem.id}`, currentItem);
         setSyllabusItems(syllabusItems.map(item => item.id === currentItem.id ? currentItem : item));
       }
       setOpen(false);
       setSnackbarOpen(true);
     } catch (error) {
-      console.error('Error updating syllabus item:', error);
+      console.error('Error updating syllabus item:', error.response.data);
       setError('Failed to update syllabus item');
     }
   };
@@ -113,7 +118,7 @@ const Syllabus = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/syllabus/delete_syllabus/${id}`);
+      await axios.delete(`http://127.0.0.1:8000/api/syllabus/delete_sylubus/${id}`);
       setSyllabusItems(syllabusItems.filter(item => item.id !== id));
       setSnackbarOpen(true);
     } catch (error) {
@@ -151,9 +156,10 @@ const Syllabus = () => {
             <TableBody>
               {syllabusItems.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell>{item.syllabus_name}</TableCell>
-                  <TableCell>{categories.find(cat => cat.id === item.category_id)?.name || 'Unknown'}</TableCell>
-                  <TableCell>{levels.find(lvl => lvl.id === item.level_id)?.name || 'Unknown'}</TableCell>
+                  <TableCell>{item.sylubus_name}</TableCell>
+                  <TableCell>{categories.find(cat => cat.id === item.id)?.category_name || 'Unknown'}</TableCell>
+                  <TableCell>{levels.find(lvl => lvl.id === item.
+                    id)?.name || 'Unknown'}</TableCell>
                   <TableCell>{item.amount}</TableCell>
                   <TableCell>
                     <Button color="primary" onClick={() => handleEdit(item)}>Edit</Button>
@@ -178,14 +184,14 @@ const Syllabus = () => {
             label="Syllabus Name"
             type="text"
             fullWidth
-            value={currentItem.syllabus_name}
-            onChange={(e) => setCurrentItem({ ...currentItem, syllabus_name: e.target.value })}
+            value={currentItem.sylubus_name}
+            onChange={(e) => setCurrentItem({ ...currentItem, sylubus_name: e.target.value })}
           />
           <div className="form-control">
             <label>Category</label>
             <select
-              value={currentItem.category_id !== null ? currentItem.category_id : ''}
-              onChange={(e) => setCurrentItem({ ...currentItem, category_id: e.target.value })}
+              value={currentItem.id !== null ? currentItem.id : ''}
+              onChange={(e) => setCurrentItem({ ...currentItem, id: e.target.value })}
             >
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -197,8 +203,8 @@ const Syllabus = () => {
           <div className="form-control">
             <label>Level</label>
             <select
-              value={currentItem.level_id !== null ? currentItem.level_id : ''}
-              onChange={(e) => setCurrentItem({ ...currentItem, level_id: e.target.value })}
+              value={currentItem.id !== null ? currentItem.id : ''}
+              onChange={(e) => setCurrentItem({ ...currentItem, id: e.target.value })}
             >
               {levels.map((level) => (
                 <option key={level.id} value={level.id}>

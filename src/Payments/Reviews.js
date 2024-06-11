@@ -16,7 +16,7 @@ const Reviews = () => {
 
   const fetchReviews = async () => {
     try {
-      const response = await axios.get('/api/reviews');
+      const response = await axios.get('http://127.0.0.1:8000/api/teacher/all_reviews');
       setReviews(response.data);
     } catch (err) {
       setError('Failed to fetch reviews.');
@@ -33,7 +33,7 @@ const Reviews = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/reviews', form);
+      const response = await axios.post('http://127.0.0.1:8000/api/teacher/all_reviews', form);
       setReviews([...reviews, response.data]);
       setForm({ id: '', rate: '', description: '' });
       setSuccess('Review added successfully!');
@@ -88,15 +88,15 @@ const Reviews = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
+              <TableCell>S/N</TableCell>
               <TableCell>Rate</TableCell>
               <TableCell>Description</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {reviews.map((review) => (
+            {reviews.map((review, index) => (
               <TableRow key={review.id}>
-                <TableCell>{review.id}</TableCell>
+                <TableCell>{index+1}</TableCell>
                 <TableCell>{review.rate}</TableCell>
                 <TableCell>{review.description}</TableCell>
               </TableRow>

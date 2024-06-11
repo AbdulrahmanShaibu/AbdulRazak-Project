@@ -12,8 +12,11 @@ import {
   Paper,
   Typography,
   Box,
-  CircularProgress // Added for loading indicator
+  CircularProgress,
+  IconButton, // Added for edit and delete icons
 } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit'; // Icon for edit
+import DeleteIcon from '@mui/icons-material/Delete'; // Icon for delete
 import axios from 'axios';
 
 const Classes = () => {
@@ -21,7 +24,8 @@ const Classes = () => {
   const [className, setClassName] = useState('');
   const [invitationLink, setInvitationLink] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false); // State for loading indicator
+  const [loading, setLoading] = useState(false);
+  const [editingClassId, setEditingClassId] = useState(null); // State for editing
 
   useEffect(() => {
     fetchClasses();
@@ -29,7 +33,7 @@ const Classes = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get('/api/classes');
+      const response = await axios.get('http://127.0.0.1:8000/api/teacher/get_all_teacher_classes');
       setClasses(response.data);
     } catch (error) {
       console.error('Error fetching classes:', error);
@@ -42,26 +46,74 @@ const Classes = () => {
       return;
     }
 
-    setLoading(true); // Show loading indicator
+    setLoading(true);
     try {
-      const newClass = { class_name: className, invitation_link: invitationLink };
-      const response = await axios.post('/api/classes', newClass);
+      const newClass = { class_name: className, invetation_link: invitationLink };
+      const response = await axios.post('http://127.0.0.1:8000/api/teacher/create_teacher_class', newClass);
       setClasses([...classes, response.data]);
       setClassName('');
       setInvitationLink('');
       setError('');
-      setLoading(false); // Hide loading indicator
+      setLoading(false);
     } catch (error) {
       console.error('Error adding class:', error);
       setError('Failed to add class. Please try again.');
-      setLoading(false); // Hide loading indicator on error
+      setLoading(false);
     }
+  };
+
+  const updateClass = async () => {
+    if (!className || !invitationLink) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const updatedClass = { class_name: className, invetation_link: invitationLink };
+      const response = await axios.put(`http://127.0.0.1:8000/api/teacher/update_teacher_class/${editingClassId}`, updatedClass);
+      setClasses(classes.map(cls => (cls._id === editingClassId ? { ...cls, ...updatedClass } : cls)));
+      setClassName('');
+      setInvitationLink('');
+      setEditingClassId(null);
+      setError('');
+      setLoading(false);
+    } catch (error) {
+      console.error('Error updating class:', error);
+      setError('Failed to update class. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  const deleteClass = async (id) => {
+    setLoading(true);
+    try {
+      await axios.delete(`http://127.0.0.1:8000/api/teacher/delete_teacher_class/${id}`);
+      setClasses(classes.filter(cls => cls._id !== id));
+      setLoading(false);
+    } catch (error) {
+      console.error('Error deleting class:', error);
+      setError('Failed to delete class. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  const startEditing = (cls) => {
+    setClassName(cls.class_name);
+    setInvitationLink(cls.invetation_link);
+    setEditingClassId(cls._id);
+  };
+
+  const cancelEditing = () => {
+    setClassName('');
+    setInvitationLink('');
+    setEditingClassId(null);
   };
 
   return (
     <Container>
       <Typography variant="h5" component="h1" gutterBottom>
-        Class
+        Classes
       </Typography>
       <Paper elevation={2} sx={{ padding: 2 }}>
         <form noValidate autoComplete="off">
@@ -90,11 +142,22 @@ const Classes = () => {
             <Button
               variant="contained"
               color="primary"
-              onClick={addClass}
-              disabled={loading} // Disable button when loading
+              onClick={editingClassId ? updateClass : addClass}
+              disabled={loading}
             >
-              {loading ? <CircularProgress size={24} /> : 'Add Class'} {/* Show loading indicator */}
+              {loading ? <CircularProgress size={24} /> : editingClassId ? 'Update Class' : 'Add Class'}
             </Button>
+            {editingClassId && (
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={cancelEditing}
+                disabled={loading}
+                sx={{ marginLeft: 2 }}
+              >
+                Cancel
+              </Button>
+            )}
           </Box>
         </form>
       </Paper>
@@ -105,14 +168,31 @@ const Classes = () => {
               <TableCell>ID</TableCell>
               <TableCell>Class Name</TableCell>
               <TableCell>Invitation Link</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {classes.map((cls) => (
-              <TableRow key={cls.id}>
-                <TableCell>{cls.id}</TableCell>
+            {classes.map((cls, index) => (
+              <TableRow key={cls._id}>
+                <TableCell>{index + 1}</TableCell>
                 <TableCell>{cls.class_name}</TableCell>
-                <TableCell>{cls.invitation_link}</TableCell>
+                <TableCell>{cls.invetation_link}</TableCell>
+                <TableCell>
+                  <IconButton
+                    color="primary"
+                    onClick={() => startEditing(cls)}
+                    disabled={loading}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    color="secondary"
+                    onClick={() => deleteClass(cls._id)}
+                    disabled={loading}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

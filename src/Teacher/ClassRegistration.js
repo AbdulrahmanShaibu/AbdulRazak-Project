@@ -34,7 +34,7 @@ const ClassRegistration = () => {
   const rowsPerPage = 5;
 
   useEffect(() => {
-    axios.get('/api/classes')
+    axios.get('http://127.0.0.1:8000/api/teacher/list_classes/')
       .then(response => setClasses(response.data))
       .catch(error => console.error('Error fetching classes:', error));
   }, []);
@@ -67,8 +67,8 @@ const ClassRegistration = () => {
     });
 
     const axiosCall = editingId
-      ? axios.put(`/api/classes/${editingId}`, formSubmitData)
-      : axios.post('/api/classes', formSubmitData);
+      ? axios.put(`http://127.0.0.1:8000/api/teacher/class_status/${editingId}`, formSubmitData)
+      : axios.post('http://127.0.0.1:8000/api/teacher/add_class/', formSubmitData);
 
     axiosCall
       .then(response => {
@@ -93,7 +93,7 @@ const ClassRegistration = () => {
   };
 
   const handleDelete = (id) => {
-    axios.delete(`/api/classes/${id}`)
+    axios.delete(`/api/not/created_api/classes/${id}`)
       .then(() => {
         setClasses(classes.filter(cls => cls.id !== id));
         setSnackbarMessage('Class deleted successfully');

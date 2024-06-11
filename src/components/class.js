@@ -3,7 +3,7 @@ import axios from 'axios';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
     Button, TextField, Select, MenuItem, FormControl, InputLabel, Container, Grid,
-    CardContent, Typography, Card, CircularProgress, Snackbar, Alert
+    CardContent, Typography, Card, CircularProgress, Snackbar, Alert, TablePagination
 } from '@mui/material';
 
 const Class = () => {
@@ -15,7 +15,7 @@ const Class = () => {
     const [formData, setFormData] = useState({
         auth_id: '',
         class_type: '',
-        category_id: '',
+        id: '',
         level_id: '',
         syllabus_id: '',
         amount: '',
@@ -33,16 +33,20 @@ const Class = () => {
     const [loading, setLoading] = useState(false);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
+    // Pagination state
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
                 const [classData, categoryData, teacherData, levelData, syllabusData] = await Promise.all([
-                    axios.get('/api/classes'),
-                    axios.get('/api/categories'),
-                    axios.get('/api/teachers'),
-                    axios.get('/api/levels'),
-                    axios.get('/api/syllabi')
+                    axios.get('http://127.0.0.1:8000/api/student/all_student_class_info'),
+                    axios.get('http://127.0.0.1:8000/api/category/all_category'),
+                    axios.get('http://127.0.0.1:8000/api/teacher/get_all_teacher_classes'),
+                    axios.get('http://127.0.0.1:8000/api/level/all_levels'),
+                    axios.get('http://127.0.0.1:8000/api/syllabus/all_syllabus')
                 ]);
 
                 setClasses(classData.data);
@@ -74,18 +78,18 @@ const Class = () => {
         setLoading(true);
         try {
             if (isEdit) {
-                await axios.put(`/api/classes/${editId}`, formData);
+                await axios.put(`http://127.0.0.1:8000/api/all_student_class_info/${editId}`, formData);
                 setIsEdit(false);
                 setEditId(null);
             } else {
-                await axios.post('/api/classes', formData);
+                await axios.post('http://127.0.0.1:8000/api/all_student_class_info', formData);
             }
-            const classData = await axios.get('/api/classes');
+            const classData = await axios.get('http://127.0.0.1:8000/api/all_student_class_info');
             setClasses(classData.data);
             setFormData({
                 auth_id: '',
                 class_type: '',
-                category_id: '',
+                id: '',
                 level_id: '',
                 syllabus_id: '',
                 amount: '',
@@ -117,8 +121,8 @@ const Class = () => {
     const handleDelete = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`/api/classes/${id}`);
-            const classData = await axios.get('/api/classes');
+            await axios.delete(`http://127.0.0.1:8000/api/all_student_class_info/${id}`);
+            const classData = await axios.get('http://127.0.0.1:8000/api/all_student_class_info');
             setClasses(classData.data);
             setSnackbar({ open: true, message: 'Class deleted successfully', severity: 'success' });
         } catch (error) {
@@ -138,10 +142,10 @@ const Class = () => {
     };
 
     const validateForm = () => {
-        const { auth_id, class_type, category_id, level_id, syllabus_id, amount, payment_type, provider, phone, duration, start_date, end_date, teacher_id } = formData;
+        const { auth_id, class_type, id, level_id, syllabus_id, amount, payment_type, provider, phone, duration, start_date, end_date, teacher_id } = formData;
         switch (step) {
             case 0:
-                return auth_id && class_type && category_id && level_id;
+                return auth_id && class_type && id && level_id;
             case 1:
                 return syllabus_id && amount && payment_type && provider;
             case 2:
@@ -182,34 +186,36 @@ const Class = () => {
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <FormControl fullWidth margin="normal" required>
-                                <InputLabel>Category</InputLabel>
-                                <Select
-                                    name="category_id"
-                                    value={formData.category_id}
+                                <label>Category</label>
+                                <select
+                                style={{height:'50px'}}
+                                    name="category_name"
+                                    value={formData.id}
                                     onChange={handleChange}
                                 >
                                     {categories.map((category) => (
-                                        <MenuItem key={category.id} value={category.id}>
-                                            {category.name}
-                                        </MenuItem>
+                                        <option key={category.id} value={category.id}>
+                                            {category.category_name}
+                                        </option>
                                     ))}
-                                </Select>
+                                </select>
                             </FormControl>
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <FormControl fullWidth margin="normal" required>
-                                <InputLabel>Level</InputLabel>
-                                <Select
+                                <label>Level</label>
+                                <select
+                                 style={{height:'50px'}}
                                     name="level_id"
                                     value={formData.level_id}
                                     onChange={handleChange}
                                 >
                                     {levels.map((level) => (
-                                        <MenuItem key={level.id} value={level.id}>
+                                        <option key={level.id} value={level.id}>
                                             {level.name}
-                                        </MenuItem>
+                                        </option>
                                     ))}
-                                </Select>
+                                </select>
                             </FormControl>
                         </Grid>
                     </>
@@ -219,18 +225,19 @@ const Class = () => {
                     <>
                         <Grid item xs={12} sm={6}>
                             <FormControl fullWidth margin="normal" required>
-                                <InputLabel>Syllabus</InputLabel>
-                                <Select
+                                <label>Syllabus</label>
+                                <select
+                                 style={{height:'50px'}}
                                     name="syllabus_id"
                                     value={formData.syllabus_id}
                                     onChange={handleChange}
                                 >
                                     {syllabi.map((syllabus) => (
-                                        <MenuItem key={syllabus.id} value={syllabus.id}>
-                                            {syllabus.name}
-                                        </MenuItem>
+                                        <option key={syllabus.id} value={syllabus.id}>
+                                            {syllabus.sylubus_name}
+                                        </option>
                                     ))}
-                                </Select>
+                                </select>
                             </FormControl>
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -326,18 +333,19 @@ const Class = () => {
                     <>
                         <Grid item xs={12}>
                             <FormControl fullWidth margin="normal" required>
-                                <InputLabel>Teacher</InputLabel>
-                                <Select
+                                <label>Teacher</label>
+                                <select
+                                 style={{height:'50px'}}
                                     name="teacher_id"
                                     value={formData.teacher_id}
                                     onChange={handleChange}
                                 >
                                     {teachers.map((teacher) => (
-                                        <MenuItem key={teacher.id} value={teacher.id}>
+                                        <option key={teacher.id} value={teacher.id}>
                                             {teacher.name}
-                                        </MenuItem>
+                                        </option>
                                     ))}
-                                </Select>
+                                </select>
                             </FormControl>
                         </Grid>
                     </>
@@ -345,6 +353,16 @@ const Class = () => {
             default:
                 return null;
         }
+    };
+
+    // Handle change for pagination
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
     };
 
     return (
@@ -393,8 +411,7 @@ const Class = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>ID</TableCell>
-                            <TableCell>Auth ID</TableCell>
+                            <TableCell>S/N</TableCell>
                             <TableCell>Class Type</TableCell>
                             <TableCell>Category</TableCell>
                             <TableCell>Level</TableCell>
@@ -411,14 +428,13 @@ const Class = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {classes.map((cls) => (
+                        {classes.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((cls, index) => (
                             <TableRow key={cls.id}>
-                                <TableCell>{cls.id}</TableCell>
-                                <TableCell>{cls.auth_id}</TableCell>
+                                <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
                                 <TableCell>{cls.class_type}</TableCell>
-                                <TableCell>{categories.find(category => category.id === cls.category_id)?.name}</TableCell>
-                                <TableCell>{levels.find(level => level.id === cls.level_id)?.name}</TableCell>
-                                <TableCell>{syllabi.find(syllabus => syllabus.id === cls.syllabus_id)?.name}</TableCell>
+                                <TableCell>{categories.find(category => category.id === cls.id)?.category_name}</TableCell>
+                                <TableCell>{levels.find(level => level.id === cls.id)?.name}</TableCell>
+                                <TableCell>{syllabi.find(syllabus => syllabus.id === cls.syllabus_id)?.sylubus_name}</TableCell>
                                 <TableCell>{cls.amount}</TableCell>
                                 <TableCell>{cls.payment_type}</TableCell>
                                 <TableCell>{cls.provider}</TableCell>
@@ -426,7 +442,7 @@ const Class = () => {
                                 <TableCell>{cls.duration}</TableCell>
                                 <TableCell>{cls.start_date}</TableCell>
                                 <TableCell>{cls.end_date}</TableCell>
-                                <TableCell>{teachers.find(teacher => teacher.id === cls.teacher_id)?.name}</TableCell>
+                                <TableCell>{teachers.find(teacher => teacher.id === cls.auth_id)?.name}</TableCell>
                                 <TableCell>
                                     <Button onClick={() => handleEdit(cls)}>Edit</Button>
                                     <Button onClick={() => handleDelete(cls.id)}>Delete</Button>
@@ -434,6 +450,15 @@ const Class = () => {
                             </TableRow>
                         ))}
                     </TableBody>
+                    <TablePagination
+                        rowsPerPageOptions={[3, 9, 27]}
+                        component="div"
+                        count={classes.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                    />
                 </Table>
             </TableContainer>
             <Snackbar

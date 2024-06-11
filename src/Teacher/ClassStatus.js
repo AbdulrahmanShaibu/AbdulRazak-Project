@@ -16,7 +16,7 @@ const ClassStatus = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/classes');
+      const response = await axios.get('http://127.0.0.1:8000/api/teacher/class_status');
       setClasses(response.data);
       setLoading(false);
     } catch (error) {
@@ -27,7 +27,7 @@ const ClassStatus = () => {
 
   const onSubmit = async (data) => {
     try {
-      const response = await axios.post('http://localhost:5000/classes', data);
+      const response = await axios.post('http://127.0.0.1:8000/api/teacher/class_status', data);
       setClasses([...classes, response.data]);
       reset();
     } catch (error) {
@@ -87,7 +87,8 @@ const ClassStatus = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Auth ID</TableCell>
+                {/* <TableCell>Auth ID</TableCell> */}
+                <TableCell>S/N</TableCell>
                 <TableCell>Image</TableCell>
                 <TableCell>Name</TableCell>
                 <TableCell>Class Type</TableCell>
@@ -95,9 +96,10 @@ const ClassStatus = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {classes.map((classItem) => (
+              {classes.map((classItem, index) => (
                 <TableRow key={classItem.id}>
-                  <TableCell>{classItem.auth_id}</TableCell>
+                  {/* <TableCell>{classItem.auth_id}</TableCell> */}
+                  <TableCell>{index+1}</TableCell>
                   <TableCell>
                     <img src={classItem.urlImg} alt={classItem.name} style={{ width: '50px', height: '50px' }} />
                   </TableCell>

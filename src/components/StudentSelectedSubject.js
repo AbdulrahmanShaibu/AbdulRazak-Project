@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import {
-    TextField, Button, Select, MenuItem, FormControl,
-    InputLabel, List, ListItem, ListItemText, Paper, Typography, Grid, Snackbar
+    Button, FormControl,
+    Typography, Grid, Snackbar, TablePagination
+} from '@mui/material';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
 } from '@mui/material';
 
 const StudentSelectedSubject = () => {
@@ -12,6 +21,8 @@ const StudentSelectedSubject = () => {
     const [selectedSubjects, setSelectedSubjects] = useState([]);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
 
     useEffect(() => {
         // Fetch subjects and teachers data from API
@@ -20,9 +31,8 @@ const StudentSelectedSubject = () => {
     }, []);
 
     const fetchSubjects = async () => {
-        // Call API to fetch subjects
         try {
-            const response = await fetch('your_subjects_api_endpoint');
+            const response = await fetch('http://127.0.0.1:8000/api/subject/all_subject');
             const data = await response.json();
             setSubjects(data);
         } catch (error) {
@@ -31,11 +41,14 @@ const StudentSelectedSubject = () => {
     };
 
     const fetchTeachers = async () => {
-        // Call API to fetch teachers
         try {
-            const response = await fetch('your_teachers_api_endpoint');
+            const response = await fetch('http://127.0.0.1:8000/api/teacher/get_all_teachers/');
             const data = await response.json();
-            setTeachers(data);
+            if (Array.isArray(data)) {
+                setTeachers(data);
+            } else {
+                throw new Error('Invalid response format');
+            }
         } catch (error) {
             handleFetchError('teachers');
         }
@@ -47,10 +60,10 @@ const StudentSelectedSubject = () => {
     };
 
     const handleAddSubject = () => {
-        // Add selected subject to the list of selected subjects
         if (teacherUid && subjectUid) {
             const selectedSubject = subjects.find(subject => subject.uid === subjectUid);
-            setSelectedSubjects([...selectedSubjects, selectedSubject]);
+            const teacher = teachers.find(teacher => teacher.uid === teacherUid);
+            setSelectedSubjects([...selectedSubjects, { ...selectedSubject, teacherName: teacher.name }]);
         } else {
             setSnackbarMessage('Please select both teacher and subject.');
             setSnackbarOpen(true);
@@ -61,50 +74,85 @@ const StudentSelectedSubject = () => {
         setSnackbarOpen(false);
     };
 
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
     return (
         <Grid container spacing={3} justifyContent="center">
             <Grid item xs={10} md={8} lg={6}>
-            <Typography variant="h6" gutterBottom style={{textAlign:'center'}}>
-                        Select Subject and Teacher
-                    </Typography>
+                <Typography variant="h6" gutterBottom style={{ textAlign: 'center' }}>
+                    Select Subject and Teacher
+                </Typography>
                 <Paper elevation={3} sx={{ padding: 2 }}>
                     <FormControl fullWidth sx={{ marginBottom: 2 }}>
-                        <InputLabel>Teacher</InputLabel>
-                        <Select
+                        <label>Teacher</label>
+                        <select
                             value={teacherUid}
                             onChange={(e) => setTeacherUid(e.target.value)}
+                            style={{ height: '50px' }}
                         >
                             {teachers.map((teacher) => (
-                                <MenuItem key={teacher.uid} value={teacher.uid}>
+                                <option key={teacher.uid} value={teacher.uid}>
                                     {teacher.name}
-                                </MenuItem>
+                                </option>
                             ))}
-                        </Select>
+                        </select>
                     </FormControl>
                     <FormControl fullWidth sx={{ marginBottom: 2 }}>
-                        <InputLabel>Subject</InputLabel>
-                        <Select
+                        <label>Subject</label>
+                        <select
                             value={subjectUid}
                             onChange={(e) => setSubjectUid(e.target.value)}
+                            style={{ height: '50px' }}
                         >
                             {subjects.map((subject) => (
-                                <MenuItem key={subject.uid} value={subject.uid}>
-                                    {subject.name}
-                                </MenuItem>
+                                <option key={subject.uid} value={subject.uid}>
+                                    {subject.subject_name}
+                                </option>
                             ))}
-                        </Select>
+                        </select>
                     </FormControl>
                     <Button variant="contained" onClick={handleAddSubject} fullWidth>
                         Send Request
                     </Button>
                     {/* Display list of selected subjects */}
-                    <List sx={{ marginTop: 2 }}>
-                        {selectedSubjects.map((subject, index) => (
-                            <ListItem key={index}>
-                                <ListItemText primary={subject.name} />
-                            </ListItem>
-                        ))}
-                    </List>
+                    <TableContainer component={Paper} sx={{ marginTop: 2 }}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>S/N</TableCell>
+                                    <TableCell>Subject Name</TableCell>
+                                    <TableCell>Teacher Name</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {selectedSubjects
+                                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                    .map((subject, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
+                                            <TableCell>{subject.subject_name}</TableCell>
+                                            <TableCell>{subject.teacherName}</TableCell>
+                                        </TableRow>
+                                    ))}
+                            </TableBody>
+                        </Table>
+                        <TablePagination
+                            rowsPerPageOptions={[2, 10, 25]}
+                            component="div"
+                            count={selectedSubjects.length}
+                            rowsPerPage={rowsPerPage}
+                            page={page}
+                            onPageChange={handleChangePage}
+                            onRowsPerPageChange={handleChangeRowsPerPage}
+                        />
+                    </TableContainer>
                 </Paper>
             </Grid>
             <Snackbar
