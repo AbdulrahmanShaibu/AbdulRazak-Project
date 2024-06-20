@@ -1,7 +1,15 @@
+// components/ClassManagement.jsx
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Typography, TextField, Button, MenuItem, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Snackbar, Alert } from '@mui/material';
+import {
+    Container, Typography, TextField, Button, Paper, IconButton,
+    Snackbar, Table, TableBody, TableCell, TableContainer,
+    TableHead, TableRow
+} from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { Alert } from 'bootstrap';
+import { AltRouteRounded } from '@mui/icons-material';
 
 const ClassManagement = () => {
     const [teachers, setTeachers] = useState([]);
@@ -18,14 +26,15 @@ const ClassManagement = () => {
 
     const fetchData = async () => {
         try {
-            const teachersResponse = await axios.get('http://127.0.0.1:8000/api/teacher/get_all_teachers/');
-            setTeachers(teachersResponse.data);
-            const subjectsResponse = await axios.get('http://127.0.0.1:8000/api/subject/all_subject');
-            setSubjects(subjectsResponse.data);
-            const classesResponse = await axios.get('http://127.0.0.1:8000/api/teacher/all_rates');
-            setClassInstances(classesResponse.data);
+            const [teachersResponse, subjectsResponse, classesResponse] = await Promise.all([
+                axios.get('http://127.0.0.1:8000/api/teacher/get_all_teachers/'),
+                axios.get('http://127.0.0.1:8000/api/subject/all_subject'),
+                axios.get('http://127.0.0.1:8000/api/teacher/all_rates')
+            ]);
 
-            console.log(subjectsResponse.data);
+            setTeachers(teachersResponse.data);
+            setSubjects(subjectsResponse.data);
+            setClassInstances(classesResponse.data);
         } catch (error) {
             setError('Error fetching data');
         }
@@ -44,104 +53,106 @@ const ClassManagement = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isNaN(formData.rate)) {
+        if (isNaN(parseFloat(formData.rate))) {
             setError('Rate must be a number');
             return;
         }
-
+    
         try {
-            await axios.post('http://localhost:5000/classes', formData);
-            fetchData();
-            setFormData({
-                name: '',
-                subject_name: '',
-                rate: ''
+            await axios.post('http://127.0.0.1:8000/api/subject/add_subject/', {
+                teacher_id: formData.name,
+                subject_name: formData.subject_name,
+                rate: parseFloat(formData.rate)
             });
+            fetchData();
+            setFormData({ name: '', subject_name: '', rate: '' });
             setSnackbarMessage('Class added successfully');
             setSnackbarOpen(true);
-            setError(''); // Clear error after successful action
+            setError('');
         } catch (error) {
             setError('Error adding class');
         }
     };
-
+    
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:5000/classes/${id}`);
+            await axios.delete(`http://127.0.0.1:8000/api/subject/delete_subject/${id}`);
             fetchData();
             setSnackbarMessage('Class deleted successfully');
             setSnackbarOpen(true);
-            setError(''); // Clear error after successful action
+            setError('');
         } catch (error) {
             setError('Error deleting class');
         }
     };
-
+    
     const handleSnackbarClose = () => {
         setSnackbarOpen(false);
     };
 
     return (
         <Container>
-            <Typography variant="h6" gutterBottom>
-                Class Management
-            </Typography>
-            {error && <Alert severity="error">{error}</Alert>}
+            <Typography variant="h6" gutterBottom>Class Management</Typography>
+            {error && <div style={{ color: 'red' }}>{error}</div>}
             <Paper sx={{ margin: 'auto', padding: 2 }}>
                 <form onSubmit={handleSubmit}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} sm={4}>
-                            <TextField
-                                select
-                                label="Teacher"
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <label htmlFor="name" style={{ marginBottom: '8px' }}>Teacher</label>
+                            <select
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
-                                fullWidth
                                 required
+                                style={{ padding: '8px', fontSize: '16px', width: '100%', boxSizing: 'border-box' }}
                             >
+                                <option value="">Select Teacher</option>
                                 {teachers.map((teacher) => (
-                                    <MenuItem key={teacher.id} value={teacher.id}>
-                                        {teacher.name}
-                                    </MenuItem>
+                                    <option key={teacher.id} value={teacher.id}>{teacher.name}</option>
                                 ))}
-                            </TextField>
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <TextField
-                                select
-                                label="Subject"
+                            </select>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <label htmlFor="subject_name" style={{ marginBottom: '8px' }}>Subject</label>
+                            <select
                                 name="subject_name"
                                 value={formData.subject_name}
                                 onChange={handleChange}
-                                fullWidth
                                 required
+                                style={{ padding: '8px', fontSize: '16px', width: '100%', boxSizing: 'border-box' }}
                             >
+                                <option value="">Select Subject</option>
                                 {subjects.map((subject) => (
-                                    <MenuItem key={subject.id} value={subject.id}>
-                                        {subject.name}
-                                    </MenuItem>
+                                    <option key={subject.id} value={subject.id}>{subject.subject_name}</option>
                                 ))}
-                            </TextField>
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <TextField
-                                label="Rate"
+                            </select>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <label htmlFor="rate" style={{ marginBottom: '8px' }}>Rate</label>
+                            <input
+                                type="text"
                                 name="rate"
                                 value={formData.rate}
                                 onChange={handleChange}
-                                fullWidth
                                 required
-                                error={isNaN(formData.rate)}
-                                helperText={isNaN(formData.rate) ? 'Rate must be a number' : ''}
+                                style={{ padding: '8px', fontSize: '16px', width: '100%', boxSizing: 'border-box' }}
                             />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Button type="submit" variant="contained" color="primary">
+                            {isNaN(formData.rate) && <span style={{ color: 'red', fontSize: '12px' }}>Rate must be a number</span>}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <button
+                                type="submit"
+                                style={{
+                                    padding: '10px', fontSize: '16px', color: 'white',
+                                    backgroundColor: '#3f51b5', border: 'none', cursor: 'pointer'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#303f9f'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3f51b5'}
+                            >
                                 Add Class
-                            </Button>
-                        </Grid>
-                    </Grid>
+                            </button>
+                        </div>
+                    </div>
                 </form>
             </Paper>
             <TableContainer component={Paper} style={{ marginTop: 20 }}>
@@ -156,12 +167,12 @@ const ClassManagement = () => {
                     </TableHead>
                     <TableBody>
                         {classInstances.map((row) => (
-                            <TableRow key={row.id}>
+                            <TableRow key={row._id}>
                                 <TableCell>{teachers.find((t) => t.id === row.name)?.name || row.name}</TableCell>
-                                <TableCell>{subjects.find((s) => s.id === row.subject_name)?.name || row.subject_name}</TableCell>
+                                <TableCell>{subjects.find((s) => s.id === row.subject_name)?.subject_name || row.subject_name}</TableCell>
                                 <TableCell>{row.rate}</TableCell>
                                 <TableCell>
-                                    <IconButton onClick={() => handleDelete(row.id)} color="secondary">
+                                    <IconButton onClick={() => handleDelete(row._id)} color="secondary">
                                         <DeleteIcon />
                                     </IconButton>
                                 </TableCell>
@@ -171,12 +182,13 @@ const ClassManagement = () => {
                 </Table>
             </TableContainer>
             <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
-                <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+                <AltRouteRounded onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
                     {snackbarMessage}
-                </Alert>
+                </AltRouteRounded>
             </Snackbar>
         </Container>
     );
 };
 
 export default ClassManagement;
+

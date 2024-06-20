@@ -113,22 +113,27 @@ const Category = () => {
     setNewCategoryStatus(category.category_status);
     setErrors({});
   };
-
+  
+ 
   const handleUpdateCategory = async () => {
     if (validateFields()) {
       const categoryId = categories[editIndex]._id;
       const categoryData = {
         category_name: newCategory,
         category_details: newCategoryDetails,
+        category_image: "",  // Ensure to send this field if it's required in the backend model
         category_status: newCategoryStatus
       };
-
+  
       try {
         const response = await axios.put(`http://127.0.0.1:8000/api/category/update_category/${categoryId}`, categoryData);
-
-        if (response.status === 200) {
+  
+        if (response.status === 200 || response.status === 204) {
           const updatedCategories = [...categories];
-          updatedCategories[editIndex] = response.data;
+          updatedCategories[editIndex] = {
+            ...categories[editIndex],
+            ...categoryData
+          };
           setCategories(updatedCategories);
           setSnackbarMessage('Category updated successfully');
           setSnackbarSeverity('success');
@@ -152,7 +157,7 @@ const Category = () => {
       setSnackbarOpen(true);
     }
   };
-
+  
 
   const handleDeleteCategory = async (index) => {
     if (index === null || index === undefined || index < 0 || index >= categories.length) {

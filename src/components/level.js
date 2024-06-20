@@ -3,9 +3,6 @@ import axios from "axios";
 import {
     Container,
     Typography,
-    List,
-    ListItem,
-    ListItemText,
     TextField,
     Button,
     Box,
@@ -16,12 +13,15 @@ import {
     Snackbar,
     Alert,
     CssBaseline,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import {
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow
-} from '@mui/material';
 
 const Level = ({ categoryId }) => {
     const [levels, setLevels] = useState([]);
@@ -36,7 +36,7 @@ const Level = ({ categoryId }) => {
 
     const fetchLevels = async () => {
         try {
-            const response = await axios.get(`http://127.0.0.1:8000/api/level/all_levels`);
+            const response = await axios.get("http://127.0.0.1:8000/api/level/all_levels/");
             setLevels(response.data);
         } catch (error) {
             handleFetchError(error);
@@ -57,14 +57,23 @@ const Level = ({ categoryId }) => {
         }
 
         try {
-            const newLevel = { name: newLevelName }; //{id: categoryId } Include category id if required by the server
-            await axios.post("http://127.0.0.1:8000/api/level/add_level/", newLevel);
+            const newLevel = { name: newLevelName };
+            console.log("Adding new level:", newLevel);
+
+            const response = await axios.post("http://127.0.0.1:8000/api/level/add_level/", newLevel, {
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            console.log("Add level response:", response);
             fetchLevels();
             setNewLevelName("");
             setFeedbackMessage("Level added successfully");
             setFeedbackSeverity("success");
         } catch (error) {
-            setFeedbackMessage("Error adding level: " + error.message);
+            console.error("Error adding level:", error);
+            setFeedbackMessage("Error adding level: " + (error.response?.data?.detail || error.message));
             setFeedbackSeverity("error");
         }
     };
@@ -89,8 +98,12 @@ const Level = ({ categoryId }) => {
         }
 
         try {
-            const updatedLevel = { name: newLevelName }; //{id: categoryId } Include category id if required by the server
-            await axios.put(`http://127.0.0.1:8000/api/level/update_level/${editingLevelId}`, updatedLevel);
+            const updatedLevel = { name: newLevelName };
+            await axios.put(`http://127.0.0.1:8000/api/level/update_level/${editingLevelId}`, updatedLevel, {
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
             fetchLevels();
             setNewLevelName("");
             setEditingLevelId(null);
@@ -103,7 +116,7 @@ const Level = ({ categoryId }) => {
     };
 
     const startEditing = (level) => {
-        setEditingLevelId(level.id); // Use id from backend
+        setEditingLevelId(level._id);
         setNewLevelName(level.name);
     };
 
@@ -115,7 +128,7 @@ const Level = ({ categoryId }) => {
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <CssBaseline />
             <Container component="main" sx={{ p: 3, margin: 'auto' }}>
-                <Paper sx={{ p: 3, mb: 3 }} >
+                <Paper sx={{ p: 3, mb: 3 }}>
                     <Typography variant="h5" gutterBottom>
                         {editingLevelId ? "Edit Level" : "Add New Level"}
                     </Typography>
@@ -152,13 +165,12 @@ const Level = ({ categoryId }) => {
                                 <TableRow>
                                     <TableCell sx={{ fontWeight: 'bold' }}>Level Name</TableCell>
                                     <TableCell sx={{ fontWeight: 'bold' }}>Edit Level</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold' }}>Romove Level</TableCell>
-                                    {/* <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell> */}
+                                    <TableCell sx={{ fontWeight: 'bold' }}>Remove Level</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {levels.map((level) => (
-                                    <TableRow key={level.id} hover>
+                                    <TableRow key={level._id} hover>
                                         <TableCell component="th" scope="row">
                                             {level.name}
                                         </TableCell>
@@ -175,7 +187,7 @@ const Level = ({ categoryId }) => {
                                         <TableCell>
                                             <IconButton
                                                 aria-label="delete"
-                                                onClick={() => handleDeleteLevel(level.id)}
+                                                onClick={() => handleDeleteLevel(level._id)}
                                                 sx={{ ml: 1, color: '#f44336' }}
                                             >
                                                 <DeleteIcon />
@@ -183,7 +195,6 @@ const Level = ({ categoryId }) => {
                                             </IconButton>
                                         </TableCell>
                                     </TableRow>
-
                                 ))}
                             </TableBody>
                         </Table>
@@ -196,7 +207,6 @@ const Level = ({ categoryId }) => {
                 </Alert>
             </Snackbar>
         </Box>
-
     );
 };
 
